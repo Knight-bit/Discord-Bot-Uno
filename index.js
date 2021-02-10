@@ -17,6 +17,7 @@ const prefix = process.env.PREFIX;
 /*fin de VARIABLES DE ENTERNO*/
 
 Client.commands = new Discord.Collection();
+const cooldowns = new Discord.Collection();
 const command_files = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 
 for(const file of command_files){
@@ -36,28 +37,40 @@ Client.on("message", message => {
     console.log(message.author.username)
     if(!message.content.startsWith(prefix) || message.author.bot) return;
     const args = message.content.slice(prefix.length).trim().split(/ +/);
-    const command = args.shift().toLowerCase();
-    if(command === "args-info"){
-        if(!args.length){
-            return message.channel.send(`You didn't provide any arguments, ${message.author}!`);
-        }else if(args[0] === 'foo') return message.channel.send('bar');
-        message.channel.send(`First arguments: ${args[0]}`);
-        message.channel.send(`Command name: ${command}\nArguments: ${args}`);
-    }else if(command === 'kick'){
-        const taggedUser = message.mentions.users.first();
-        message.channel.send(`You wanted to kick: ${taggedUser.username}`);
-    }else if(command === 'avatar'){
-        if(!message.mentions.users.size){
-            return message.channel.send(`You avatar: <${message.author.displayAvatarURL({ format: "png", dynamic: true })}>`)
+    const command_name = args.shift().toLowerCase();
+    const command = Client.commands.get(command_name) || Client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(command_name));
+    if(!command) return ;
+    if(command.guild_only && message.channel.type === 'dm'){
+        return message.reply('I can\'t execute that command inside DMs!');
+    }
+    if(command.args && !args.length){
+        let reply = `You didn't provide any arguments, ${message.author}!`;
+        if(command.usage){
+            reply += `\nThe proper usage would be: \`${prefix}${command.name} ${command.usage}\``;
         }
-        const avatarList = message.mentions.users.map(user => {
-            return `${user.username}'s avatar: <${user.displayAvatarURL({ format: "png", dynamic: true })}>`;
-            });
-        message.channel.send(avatarList);
-    }else if(command === 'prune'){
-        Client.commands.get('prune').execute(message, args);
-    }else if(command === 'ping'){
-        Client.commands.get('ping').execute(message, args);
+        return message.channel.send(reply);
+    }
+    if(!cooldowns.has(command.name)){
+        cooldowns.set(command.name, new Discord.Collection());
+    }
+    const now = Date.now();
+    const timestamps = cooldowns.get(command.name);
+    const cooldown_amount = (command.cooldown || 3) * 1000;
+    /*
+    if(timestamps.has(message.author.id)){
+        const expiration_time = timestamps.get(message.author.id) + cooldown_amount;
+        if(now < expiration_time){
+            const time_left = (expiration_time - now) / 1000;
+            return message.reply(`please wait ${time_left.toFixed(1)} more seconds(s) before reusing the\`${command.name}\` command.`);
+        }
+    }
+    */
+    timestamps.set(message.author.id, now);
+    setTimeout(() => timestamps.delete(message.author.id), cooldown_amount);
+    try{
+        command.execute(message, args);
+    }catch(err){
+        message.channel.send(`Hubo un error: ${err}`);
     }
 
 });
