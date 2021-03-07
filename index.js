@@ -6,6 +6,7 @@ const axios = require("axios");
 const Discord = require("discord.js");
 const Client = new Discord.Client();
 const fs = require('fs');
+const db = require('./mongodb/mongo_connect');
 
 //url:https://discordjs.guide/command-handling/dynamic-commands.html#dynamically-executing-commands
 /* VARIABLES DE ENTERNO*/
@@ -34,14 +35,7 @@ app.use(bodyParser.urlencoded({extended:true}));
 
 Client.once("ready", () => {
     setInterval(async () => {
-        const datos = await axios.get(url);
-        if(datos.status == 200){
-            const manipular = datos.data.result.matches[0];
-            console.log(manipular);
-        }else{
-            console.log(err);
-        }
-
+        
     }, 5000); //llamada cada 5 sgs a la api de steam
     console.log("Ready!");
 });
