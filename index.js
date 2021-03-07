@@ -14,7 +14,11 @@ const WEBHOOK = process.env.WEBHOOK_KNIGHT_ONE;
 const PORT = process.env.PORT;
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const prefix = process.env.PREFIX;
+const STEAM_API = process.env.STEAM_API;
+const GELA = process.env.GELA;
 /*fin de VARIABLES DE ENTERNO*/
+
+const url = `http://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/v1?key=${STEAM_API}&account_id=${GELA}`;
 
 Client.commands = new Discord.Collection();
 const cooldowns = new Discord.Collection();
@@ -29,6 +33,16 @@ app.use(express.static("build"))
 app.use(bodyParser.urlencoded({extended:true}));
 
 Client.once("ready", () => {
+    setInterval(async () => {
+        const datos = await axios.get(url);
+        if(datos.status == 200){
+            const manipular = datos.data.result.matches[0];
+            console.log(manipular);
+        }else{
+            console.log(err);
+        }
+
+    }, 5000); //llamada cada 5 sgs a la api de steam
     console.log("Ready!");
 });
 
@@ -65,6 +79,7 @@ Client.on("message", message => {
         }
     }
     */
+   
     timestamps.set(message.author.id, now);
     setTimeout(() => timestamps.delete(message.author.id), cooldown_amount);
     try{
@@ -77,6 +92,7 @@ Client.on("message", message => {
 
 Client.login(BOT_TOKEN);
 
+/*
 app.get("/", (req, res) => {
     return res.sendFile(path.join(__dirname, "build", "index.html"));
 });
@@ -98,3 +114,5 @@ app.listen(PORT, () => {
     console.log("Listening port:" + PORT);
     console.log(path.join(__dirname, ".env"));
 })
+*/
+
