@@ -6,7 +6,7 @@ const axios = require("axios");
 const Discord = require("discord.js");
 const Client = new Discord.Client();
 const fs = require('fs');
-const db = require('./mongodb/mongo_connect');
+const { Console } = require("console");
 
 //url:https://discordjs.guide/command-handling/dynamic-commands.html#dynamically-executing-commands
 /* VARIABLES DE ENTERNO*/
@@ -20,10 +20,13 @@ const GELA = process.env.GELA;
 /*fin de VARIABLES DE ENTERNO*/
 
 const url = `http://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/v1?key=${STEAM_API}&account_id=${GELA}`;
+const path_chicos = "C:\\Users\\WorldEditor\\Documents\\Python_Scripts\\Python_Dataanalysis\\datos\\chicos";
+
 
 Client.commands = new Discord.Collection();
 const cooldowns = new Discord.Collection();
 const command_files = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+
 
 for(const file of command_files){
     const command = require(`./commands/${file}`);
@@ -35,8 +38,16 @@ app.use(bodyParser.urlencoded({extended:true}));
 
 Client.once("ready", () => {
     setInterval(async () => {
-        
-    }, 5000); //llamada cada 5 sgs a la api de steam
+        fs.readdirSync(path_chicos).map( _ =>{ 
+            let file = path_chicos + "\\" + _;
+            fs.readFile(file, (err, data) => {
+                if(err) console.log(err);
+                let datos = JSON.parse(data);
+                console.log(datos.kills)
+            });
+        })
+        console.log("\n");
+    }, 2500); //llamada cada 5 sgs a la api de steam
     console.log("Ready!");
 });
 
