@@ -1,4 +1,4 @@
-const {Schema}, mongoose = require("mongoose");
+const {Schema} = require("mongoose");
 
 
 const chicos_stats = new Schema({
@@ -16,4 +16,16 @@ const chicos_stats = new Schema({
     friends: Map,
     heroes : Map,
 })
+const chicos_update = new Schema({
+    user_id : Number,
+    match_id : Number,
+    dummy : {
+        type: Map,
+        of: Map
+    }
+})
 
+module.exports = {
+    chicos_stats,
+    chicos_update,
+}
