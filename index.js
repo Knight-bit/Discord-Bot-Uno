@@ -13,7 +13,7 @@ const GELA = process.env.GELA;
 const express = require("express");
 const bodyParser = require("body-parser");
 
-const {conn, Chicos_Stats, Chicos_Update} = require('./mongodb/mongo_connect');
+const {conn, Chicos_Stats, Chicos_Update, Chicos_Dummy} = require('./mongodb/mongo_connect');
 const app = express();
 const axios = require("axios");
 const {Client, Message, Collection, WebhookClient} = require("discord.js");
@@ -42,9 +42,24 @@ for(const file of command_files){
 app.use(express.static("build"))
 app.use(bodyParser.urlencoded({extended:true}));
 
-
+const dummy_data = {
+    "heroes" : [
+        {
+            "kills" : [2,1],
+            "deaths" : [3,1] 
+        },
+        {
+            "kills" : [3,3,1],
+            "deaths" : [3,1,2] 
+        },
+        
+    ]
+}
 //new Discord.Message(client data channe_l);
-client.once("ready", () => {
+client.once("ready",async () => {
+    
+    const dummy = new Chicos_Dummy(dummy_data);
+    dummy.save();
     /*
         fs.readdirSync(path_chicos).map(_ =>{ 
             let file = path_chicos + "\\" + _;
