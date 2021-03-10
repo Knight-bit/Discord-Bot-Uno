@@ -8,12 +8,19 @@ const BOT_TOKEN = process.env.BOT_TOKEN;
 const prefix = process.env.PREFIX;
 const STEAM_API = process.env.STEAM_API;
 const GELA = process.env.GELA;
+const LUCAS = process.env.LUCAS;
+const MATI = process.env.MATI;
+const KNIGHT = process.env.KNIGHT;
+const MIGUE = process.env.MIGUE;
+const SPARKI = process.env.SPARKI;
+const WOLF = process.env.WOLF;
 /*fin de VARIABLES DE ENTERNO*/
 
 const express = require("express");
 const bodyParser = require("body-parser");
+const Dict = require("collections/dict");
 
-const {conn, Chicos_Stats, Chicos_Update, Chicos_Dummy} = require('./mongodb/mongo_connect');
+const {conn, Chicos_Stats, Chicos_Update} = require('./mongodb/mongo_connect');
 const app = express();
 const axios = require("axios");
 const {Client, Message, Collection, WebhookClient} = require("discord.js");
@@ -25,7 +32,15 @@ const fs = require('fs');
 //url:https://discordjs.guide/command-handling/dynamic-commands.html#dynamically-executing-commands
 
 
-const url = `http://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/v1?key=${STEAM_API}&account_id=${GELA}`;
+const url_gela = `http://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/v1?key=${STEAM_API}&account_id=${GELA}`;
+const url_knight = `http://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/v1?key=${STEAM_API}&account_id=${KNIGHT}`;
+const url_migue = `http://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/v1?key=${STEAM_API}&account_id=${MIGUE}`;
+const url_sparki = `http://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/v1?key=${STEAM_API}&account_id=${SPARKI}`;
+const url_wolf = `http://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/v1?key=${STEAM_API}&account_id=${WOLF}`;
+const url_mati = `http://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/v1?key=${STEAM_API}&account_id=${MATI}`;
+const url_lucas = `http://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/v1?key=${STEAM_API}&account_id=${LUCAS}`;
+
+
 const path_chicos = "C:\\Users\\WorldEditor\\Documents\\Python_Scripts\\Python_Dataanalysis\\datos\\chicos";
 
 
@@ -42,26 +57,87 @@ for(const file of command_files){
 app.use(express.static("build"))
 app.use(bodyParser.urlencoded({extended:true}));
 
-const dummy_data = {
-    "heroes" : [
-        {
-            "kills" : [2,1],
-            "deaths" : [3,1] 
-        },
-        {
-            "kills" : [3,3,1],
-            "deaths" : [3,1,2] 
-        },
-        
-    ]
-}
-//new Discord.Message(client data channe_l);
-client.once("ready",async () => {
-    
-    const dummy = new Chicos_Dummy(dummy_data);
-    dummy.save();
+const chicos_id =new Dict({
+    "128875872" : "gela",
+    "123438968" : "knight",
+    "160933871" : "migue",
+    "138086794" : "mati",
+    "122477757" : "sparki"
+});
+
+const manageNewMatches = (match, id) => {
+    let match_id = match.match_id;
+    let chicos = [];
+    for(let x of match.players){
+        let account_id = x.account_id
+        if(chicos_id.has(account_id.toString())){
+            Chicos_Update.findOne({account_id}, (err, result) => {
+                if(result == null){
+                    const data = new Chicos_Update({"account_id" : x.account_id, "match_id" : match_id, "name" : chicos_id.get(account_id.toString())});
+                    data.save();
+                }else{
+                    if(result.match_id == match_id){
+                        console.log("Las partidas son iguales")
+                    }else{
+                       
+                    }
+                }
+            })
+        }
+    }
     /*
-        fs.readdirSync(path_chicos).map(_ =>{ 
+    for(let x of match.players){
+        Chicos_Update({x.account_id}, (err, update) => {
+
+        })
+    }
+    Chicos_Update.findOne({id}, (err, update) => {
+        if(err){
+            console.log("Error: " + err);
+        }else if(update == null){
+
+            console.log("Update == " + update);
+        }else{
+            console.log("Update con exito")
+        }
+    })
+    */
+}
+
+//new Discord.Message(client data channe_l);
+client.once("ready", () => {
+    let counter = 0, datos;
+    setInterval(async () => {
+        if(counter == 0){
+            datos = await axios.get(url_gela);
+            console.log(`match:${datos.data.result.matches[0].match_id} of gela`);
+            manageNewMatches(datos.data.result.matches[0], GELA);
+            counter ++;
+        }else if(counter == 1){
+            datos = await axios.get(url_migue);
+            console.log(`match:${datos.data.result.matches[0].match_id} of migue`);
+            manageNewMatches(datos.data.result.matches[0], MIGUE);
+            counter ++;
+        }else if(counter == 2){
+            datos = await axios.get(url_knight);
+            console.log(`match:${datos.data.result.matches[0].match_id} of knight`);
+            manageNewMatches(datos.data.result.matches[0], KNIGHT);
+            counter ++;
+        }else if(counter == 3){
+            datos = await axios.get(url_sparki);
+            console.log(`match:${datos.data.result.matches[0].match_id} of sparki`);
+            manageNewMatches(datos.data.result.matches[0], SPARKI);
+            counter ++;
+        }else if(counter == 4){
+            datos = await axios.get(url_mati);
+            console.log(`match:${datos.data.result.matches[0].match_id} of mati`);
+            manageNewMatches(datos.data.result.matches[0], MATI);
+            counter = 0;
+        }
+    }, 5000)
+
+    /*
+       fs.readdirSync(path_chicos).map(_ =>{ 
             let file = path_chicos + "\\" + _;
             fs.readFile(file, (err, data) => {
                 if(err) console.log(err);

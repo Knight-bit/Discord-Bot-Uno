@@ -71,8 +71,9 @@ const chicos_stats = new Schema({
     ],
 })
 const chicos_update = new Schema({
-    user_id : Number,
+    account_id : Number,
     match_id : Number,
+    name : String,
 })
 const dummy = new Schema({
     "heroes" : [
