@@ -41,7 +41,7 @@ const url_mati = `http://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/v1
 const url_lucas = `http://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/v1?key=${STEAM_API}&account_id=${LUCAS}`;
 
 
-const path_chicos = "C:\\Users\\WorldEditor\\Documents\\Python_Scripts\\Python_Dataanalysis\\datos\\chicos";
+const path_chicos = "./files/chicos_datas/";
 
 
 client.commands = new Collection();
@@ -85,27 +85,9 @@ const manageNewMatches = (match, id) => {
             })
         }
     }
-    /*
-    for(let x of match.players){
-        Chicos_Update({x.account_id}, (err, update) => {
-
-        })
-    }
-    Chicos_Update.findOne({id}, (err, update) => {
-        if(err){
-            console.log("Error: " + err);
-        }else if(update == null){
-
-            console.log("Update == " + update);
-        }else{
-            console.log("Update con exito")
-        }
-    })
-    */
 }
 
-//new Discord.Message(client data channe_l);
-client.once("ready", () => {
+function main() {
     let counter = 0, datos;
     setInterval(async () => {
         if(counter == 0){
@@ -135,19 +117,28 @@ client.once("ready", () => {
             counter = 0;
         }
     }, 5000)
+}
 
-    /*
+//new Discord.Message(client data channe_l);
+client.once("ready", () => {
+    
+    //main();
        fs.readdirSync(path_chicos).map(_ =>{ 
-            let file = path_chicos + "\\" + _;
+            let file = path_chicos + _;
             fs.readFile(file, (err, data) => {
                 if(err) console.log(err);
+                console.log(file);
                 let datos = JSON.parse(data);
-                let save_content = new Chicos_Update({"match_id" : 654, "user_id" : 123});
-                save_content.save();
+                let datos_chicos = new Chicos_Stats(datos);
+                datos_chicos.save((err) => {
+                    if(err) console.log(err);
+                    console.log("Saved");
+                })
+                
             });
         })
       
-    */
+    
     console.log("Ready!");
 }); 
 
