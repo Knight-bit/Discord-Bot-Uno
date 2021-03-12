@@ -90,3 +90,25 @@ module.exports = {
     chicos_update,
     dummy,
 }
+
+/* //Metodo que use para guardar los archivos en la db
+setTimeout(() => {
+        fs.readdirSync(path_chicos).map(_ =>{ 
+            let file = path_chicos + _;
+            fs.readFile(file, (err, data) => {
+                if(err){
+                    return console.log(err);
+                } 
+                console.log(file);
+                let datos = JSON.parse(data);
+                Chicos_Stats.create(datos, (err, data) => {
+                    if(err){
+                        console.log(err);
+                    }
+                    console.log("Data saved");
+                });
+            });
+        })
+    }, 5000)
+    console.log("Ready!");
+*/

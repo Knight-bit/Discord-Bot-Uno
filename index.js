@@ -23,7 +23,7 @@ const Dict = require("collections/dict");
 const {conn, Chicos_Stats, Chicos_Update} = require('./mongodb/mongo_connect');
 const app = express();
 const axios = require("axios");
-const {Client, Message, Collection, WebhookClient} = require("discord.js");
+const {Client, Message, Collection, WebhookClient, MessageEmbed} = require("discord.js");
 const client = new Client();
 const hook = new WebhookClient(WEBHOOK_ID, WEBHOOK_TOKEN);
 const fs = require('fs');
@@ -65,21 +65,29 @@ const chicos_id =new Dict({
     "122477757" : "sparki"
 });
 
-const manageNewMatches = (match, id) => {
+const manageNewMatches = (match, id, client) => {
     let match_id = match.match_id;
-    let chicos = [];
     for(let x of match.players){
         let account_id = x.account_id
         if(chicos_id.has(account_id.toString())){
-            Chicos_Update.findOne({account_id}, (err, result) => {
-                if(result == null){
-                    const data = new Chicos_Update({"account_id" : x.account_id, "match_id" : match_id, "name" : chicos_id.get(account_id.toString())});
-                    data.save();
-                }else{
-                    if(result.match_id == match_id){
-                        console.log("Las partidas son iguales")
+            Chicos_Update.findOne({'account_id' : account_id}, (err, result) => {
+                if(err){
+                    console.log("error en chicos_update");
+                }
+                else{
+                    if(result == null){
+                        const data = new Chicos_Update({"account_id" : x.account_id, "match_id" : match_id, "name" : chicos_id.get(account_id.toString())});
+                        data.save();
                     }else{
-                       
+                        if(result.match_id == match_id){
+                            console.log("Las partidas son iguales")
+                            console.log(result);
+                        }else{
+                        //hook.send();
+                        //Aca deberiamos crear un mensaje con la partida nueva
+                        //Chicos_Update.updateOne(result, )
+                        
+                        }
                     }
                 }
             })
@@ -87,7 +95,7 @@ const manageNewMatches = (match, id) => {
     }
 }
 
-function main() {
+function main(client) {
     let counter = 0, datos;
     setInterval(async () => {
         if(counter == 0){
@@ -121,26 +129,28 @@ function main() {
 
 //new Discord.Message(client data channe_l);
 client.once("ready", () => {
+    console.log(client.channels)
+    /*
+    hook.sendSlackMessage({
+        embeds : [{
+            files : [{
+                attachment: "./images/goat1.jpg",
+                name : "goat1.jpg",
+            }]
+        }],
+      }).then(console.log).catch(console.error);
+      */
+    const salute = new MessageEmbed()
+    .setTitle('A slick little embed')
+    .setColor(0xff0000)
+    .setDescription('Hello, this is a slick embed!');
     
-    //main();
-       fs.readdirSync(path_chicos).map(_ =>{ 
-            let file = path_chicos + _;
-            fs.readFile(file, (err, data) => {
-                if(err) console.log(err);
-                console.log(file);
-                let datos = JSON.parse(data);
-                let datos_chicos = new Chicos_Stats(datos);
-                datos_chicos.save((err) => {
-                    if(err) console.log(err);
-                    console.log("Saved");
-                })
-                
-            });
-        })
-      
+    hook.send(salute);
     
-    console.log("Ready!");
 }); 
+
+
+
 
 client.on("message", message => {
     console.log(message.content);
@@ -161,7 +171,7 @@ client.on("message", message => {
         return message.channel.send(reply);
     }
     if(!cooldowns.has(command.name)){
-        cooldowns.set(command.name, new Discord.Collection());
+        cooldowns.set(command.name, new Collection());
     }
     const now = Date.now();
     const timestamps = cooldowns.get(command.name);
