@@ -127,9 +127,38 @@ function main(client) {
     }, 5000)
 }
 
+const exampleEmbed = new MessageEmbed()
+    .setColor('#0099ff')
+    .setTitle('Some title')
+    .setURL('https://discord.js.org/')
+    .setAuthor('Some name', 'https://i.imgur.com/wSTFkRM.png', 'https://discord.js.org')
+    .setDescription('Some description here')
+    .setThumbnail('https://i.imgur.com/wSTFkRM.png')
+    .addFields(
+        { name: 'Regular field title', value: 'Some value here' },
+        { name: '\u200B', value: '\u200B' },
+        { name: 'Inline field title', value: 'Some value here', inline: true },
+        { name: 'Inline field title', value: 'Some value here', inline: true },
+    )
+    .addField('Inline field title', 'Some value here', true)
+    .setImage('https://i.imgur.com/wSTFkRM.png')
+    .setTimestamp()
+    .setFooter('Some footer text here', 'https://i.imgur.com/wSTFkRM.png');
+
+
+const stats_game = new MessageEmbed()
+.setColor("#5487ff")
+.setTitle("Generic link to dotabuff")
+.setDescription("Match of [grupo de amigos] aqui")
+.addFields(
+    {name : "kills" , value : "Number", inline: true},
+    {name : "deaths" , value : "Number", inline: true},
+    {name : "assists" , value : "Number", inline: true},
+);
+
 //new Discord.Message(client data channe_l);
 client.once("ready", () => {
-    console.log(client.channels)
+    //console.log(client.channels)
     /*
     hook.sendSlackMessage({
         embeds : [{
@@ -140,20 +169,15 @@ client.once("ready", () => {
         }],
       }).then(console.log).catch(console.error);
       */
-    const salute = new MessageEmbed()
-    .setTitle('A slick little embed')
-    .setColor(0xff0000)
-    .setDescription('Hello, this is a slick embed!');
     
-    hook.send(salute);
     
 }); 
 
-
-
-
 client.on("message", message => {
     console.log(message.content);
+    if(message.content == "ohaiho"){
+        message.channel.send(stats_game);
+    }
     console.log(message.author.username)
     if(!message.content.startsWith(prefix) || message.author.bot) return;
     const args = message.content.slice(prefix.length).trim().split(/ +/);
