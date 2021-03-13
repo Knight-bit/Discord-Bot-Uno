@@ -99,29 +99,44 @@ const manageNewMatches = (match, channel) => {
                         })
                     }else{
                         if(result.match_id == match_id){
-                            console.log("Las partidas son iguales")
-                            console.log(result);
-                        }else{
+                            console.log("Las partidas son iguales");
+                        }
+                        else{
+                            //Llamo al api para conseguir la partida especifica
                             axios.get(get_match(STEAM_API, match_id))
                             .then((res) => {
                                 const joven = res.data.result.players.filter(person => person.account_id == account_id);
                                 const stats_jugador = joven[0];
                                 const win = get_victory(stats_jugador.player_slot, res.data.result.radiant_win);
-                                Chicos_Update.find({"account_id" : account_id}, (err, data) =>{ 
-                                    if(err) throw Error(err);
-                                    const mensaje = sendEmbed.execute(result.match_id,
-                                                account_id, data[0].personaname, win, 
-                                                data[0].avatar , stats_jugador, "Bien jugado");
-                                    channel.send({embed : mensaje});
+                                //Ahora llamo al api de DOTA2API para conseguir cualquier
+                                //Modificacion del usuario si existe, sino, dejalo igual
+                                axios.get(get_person_data(STEAM_API, account_id))
+                                .then( res => {
+                                    const perfil = res.data.profile;
+                                    const update = {
+                                        "account_id" : account_id,
+                                        "match_id" : match_id,
+                                        "name" : chicos_id.get(account_id.toString()),
+                                        "personaname" : perfil.personaname,
+                                        "avatar" : perfil.avatarfull, 
+                                    }
+                                    Chicos_Update.findOneAndUpdate({"account_id" : account_id}, update, (err, data) => { 
+                                        if(err) throw Error(err);
+                                        const mensaje = sendEmbed.execute(result.match_id,
+                                                    account_id, data[0].personaname, win, 
+                                                    data[0].avatar , stats_jugador, "Bien jugado");
+                                        channel.send({embed : mensaje});
+                                    })
                                 })
                                 .catch(err => {
                                     console.log(err);
-                                })
+                                });
                             })
                             .catch((err) => {
                                 console.log(err);
                             });
-                           
+                            //Falta agregar una parte donde upgradea el ChicosStats, eso para el futuro
+                           console.log("Updateado con exito");
                         }
                     }
                 }
@@ -161,55 +176,6 @@ function main(channel) {
         }
     }, 5000)
 }
-
-const exampleEmbed1 = {
-	color: 0x0099ff,
-	title: 'Some title',
-	url: 'https://discord.js.org',
-	author: {
-		name: 'Some name',
-		icon_url: 'https://i.imgur.com/wSTFkRM.png',
-		url: 'https://discord.js.org',
-	},
-	description: 'Some description here',
-	thumbnail: {
-		url: 'https://i.imgur.com/wSTFkRM.png',
-	},
-	fields: [
-		{
-			name: 'Regular field title',
-			value: 'Some value here',
-		},
-		{
-			name: '\u200b',
-			value: '\u200b',
-			inline: false,
-		},
-		{
-			name: 'Inline field title',
-			value: 'Some value here',
-			inline: true,
-		},
-		{
-			name: 'Inline field title',
-			value: 'Some value here',
-			inline: true,
-		},
-		{
-			name: 'Inline field title',
-			value: 'Some value here',
-			inline: true,
-		},
-	],
-	image: {
-		url: 'https://i.imgur.com/wSTFkRM.png',
-	},
-	timestamp: new Date(),
-	footer: {
-		text: 'Some footer text here',
-		icon_url: 'https://i.imgur.com/wSTFkRM.png',
-	},
-};
 
 client.once("ready", () => {
     const messageChannel = client.channels.cache.get("820306912280051804")
