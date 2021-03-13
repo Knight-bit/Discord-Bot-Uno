@@ -74,21 +74,15 @@ const chicos_update = new Schema({
     account_id : Number,
     match_id : Number,
     name : String,
+    avatar: String,
+    personaname : String,
 })
-const dummy = new Schema({
-    "heroes" : [
-        {
-            "kills" : [Number],
-            "deaths" : [Number]
-        }
-    ]
-})
+
 
 
 module.exports = {
     chicos_stats,
     chicos_update,
-    dummy,
 }
 
 /* //Metodo que use para guardar los archivos en la db

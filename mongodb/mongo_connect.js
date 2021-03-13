@@ -13,7 +13,6 @@ const url_mongo = `mongodb+srv://${USER}:${PASSWORD}@knight-bot.gitzt.mongodb.ne
 const conn = mongoose.createConnection(url_mongo,{useNewUrlParser: true,useUnifiedTopology: true });
 const Chicos_Stats = conn.model("chicos_stats", chicos_stats);
 const Chicos_Update = conn.model("chicos_update", chicos_update);
-const Chicos_Dummy = conn.model("dummy", dummy);
 
 
 conn.on('connected', () => {
@@ -27,5 +26,4 @@ module.exports = {
 	conn,
 	Chicos_Stats,
 	Chicos_Update,
-	Chicos_Dummy,
 }
