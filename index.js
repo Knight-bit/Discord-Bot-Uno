@@ -42,10 +42,10 @@ const get_victory = (player_slot, radiant_win) => {
     if(player_slot < 100 && radiant_win == true){
         return true;
     }
-    else if(player > 100 && radiant_win == true){
+    else if(player_slot > 100 && radiant_win == true){
         return false
     }
-    else if(player > 100 && radiant_win == false){
+    else if(player_slot > 100 && radiant_win == false){
         return true;
     }
     else{
@@ -114,7 +114,7 @@ const manageNewMatches = (match, channel) => {
                                 .then( res => {
                                     const perfil = res.data.profile;
                                     const update = {
-                                        "account_id" : account_id,
+                                        "account_id" : x.account_id,
                                         "match_id" : match_id,
                                         "name" : chicos_id.get(account_id.toString()),
                                         "personaname" : perfil.personaname,
@@ -123,9 +123,12 @@ const manageNewMatches = (match, channel) => {
                                     Chicos_Update.findOneAndUpdate({"account_id" : account_id}, update, (err, data) => { 
                                         if(err) throw Error(err);
                                         const mensaje = sendEmbed.execute(result.match_id,
-                                                    account_id, data[0].personaname, win, 
-                                                    data[0].avatar , stats_jugador, "Bien jugado");
+                                                    account_id, data.personaname, win, 
+                                                    data.avatar , stats_jugador, "Bien jugado");
                                         channel.send({embed : mensaje});
+                                    })
+                                    .catch((err) => {
+                                        console.log(err);
                                     })
                                 })
                                 .catch(err => {
@@ -170,7 +173,7 @@ function main(channel) {
             counter ++;
         }else if(counter == 4){
             datos = await axios.get(url_mati);
-            console.log(`match:${datos.data.result.matches[0].match_id} of mati`);
+            console.log(`match:${datos.data.result.matches[1].match_id} of mati`);
             manageNewMatches(datos.data.result.matches[0], channel);
             counter = 0;
         }
