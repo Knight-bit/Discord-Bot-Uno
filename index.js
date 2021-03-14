@@ -84,97 +84,48 @@ for(const file of command_files){
 //Updatea al jugador con su ultimo game, solamente ese jugador es updateado si hay mas veo que hago
 const manageNewMatches = (match, id, channel) => {
     const match_id = match.match_id;
-    let check = false;
-    for(let x of match.players){
-        let account_id = x.account_id
-        console.log(account_id + " account id");
-        //Si la persona que se busca es igual a la que llamo la funcion principal
-        //Hace modificaciones, sino, deja los datos de los demas iguales
-        if(account_id == id) check = true;
-        if(chicos_id.has(account_id.toString())){
-            Chicos_Update.findOne({'account_id' : account_id}, (err, result) => {
-                if(err){
-                    console.log("error en chicos_update");
-                }
-                else{
-                    if(result == null){
-                        const get_specific = get_person_data(STEAM_API, account_id);
-                        axios.get(get_specific)
-                        .then((res) =>{
-                            const perfil = res.data.profile;
-                            Chicos_Update.create({"account_id" : x.account_id,
-                                                "match_id" : match_id, 
-                                                "name" : chicos_id.get(account_id.toString()),
-                                                "personaname" : perfil.personaname,
-                                                "avatar" : perfil.avatarfull,
-                                            });
-                        })
-                        .catch(err => {
-                            console.log("Error haciendo la llamada al DOTA2API");
-                            console.log(err);
-                        })
-                    }
-                    else{
-                        //Si la partida ya existe en el db del usuario, no hagas nada
-                        if(result.match_id == match_id){
-                            console.log("Las partidas son iguales");
-                        }
-                        else{
-                            //Llamo al api para conseguir la partida especifica
-                            axios.get(get_match(STEAM_API, match_id))
-                            .then((res) => {
-                                //Filtro los jugadores y agarro al jugador actual del loop
-                                const joven = res.data.result.players.filter(person => person.account_id == account_id);
-                                const stats_jugador = joven[0];
-                                const win = get_victory(stats_jugador.player_slot, res.data.result.radiant_win);
-                                //Ahora llamo al api de DOTA2API para conseguir cualquier
-                                //Modificacion del usuario si existe, sino, dejalo igual
-                                if(check){
-                                check = false;
-                                console.log("Updating");
-                                //reseteamos la variable para que no se reuse
-                                axios.get(get_person_data(STEAM_API, account_id))
-                                .then( res => {
-                                    
-                                        const perfil = res.data.profile;
-                                        const update = {
-                                            "account_id" : x.account_id,
-                                            "match_id" : match_id,
-                                            "name" : chicos_id.get(account_id.toString()),
-                                            "personaname" : perfil.personaname,
-                                            "avatar" : perfil.avatarfull, 
-                                        }
-                                        Chicos_Update.findOneAndUpdate({"account_id" : account_id}, update, (err, data) => { 
-                                            if(err) throw Error(err);
-                                            const mensaje = sendEmbed.execute(result.match_id,
-                                                        account_id, data.personaname, win, 
-                                                        data.avatar , stats_jugador, "Bien jugado");
-                                            channel.send({embed : mensaje});
-                                        })
-                                        .catch((err) => {
-                                            console.log(err);
-                                        })
-                                    })
-                                    .catch(err => {
-                                        console.log(err);
-                                    });
-                                    //Terminar el loop aca
-                                    return;
-                                }
-                                console.log("Passing the update");
-                            })
-                            .catch((err) => {
-                                console.log(err);
-                            });
-                            //Falta agregar una parte donde upgradea el ChicosStats, eso para el futuro
-                        }
-                    }
-                }
+    Chicos_Update.findOne({"account_id" : id}, (err, data) => {
+        if(err) throw Error(err); //Si tira error natural va directo al throw
+        if(data == null){ //Si no devuelve datos, crea el objecto
+        const get_specific = get_person_data(STEAM_API, id);
+        axios.get(get_specific)
+        .then((res) =>{
+            const perfil = res.data.profile;
+            Chicos_Update.create({"account_id" : id,
+                                "match_id" : match_id, 
+                                "name" : chicos_id.get(id),
+                                "personaname" : perfil.personaname,
+                                "avatar" : perfil.avatarfull});
             })
         }
-    }//termina el for
+        if(match_id == data.match_id) return console.log("El match es el mismo")  //Chequea si el match ya esta archivado
+        axios.get(get_match(STEAM_API, match_id)) 
+        .then(res => { //Pido el detalle del match para llevarme sus datos
+            const player = res.data.result.players.filter(_ => _.account_id == id)[0];
+            const win = get_victory(player.player_slot, res.data.result.radiant_win);
+            axios.get(get_person_data(STEAM_API, id))
+            .then((res_personal) => {
+                const perfil = res_personal.data.profile;
+                const update = {
+                                "account_id" : id,
+                                "match_id" : match_id,
+                                "name" : chicos_id.get(id),
+                                "personaname" : perfil.personaname,
+                                "avatar" : perfil.avatarfull, 
+                                }
+                Chicos_Update.findOneAndUpdate({"account_id" : id}, update, (err, data) => { 
+                    if(err) throw Error(err);
+                    const mensaje = sendEmbed.execute(match_id, id, data.personaname, win, 
+                                                    data.avatar , player, "Bien jugado");
+                    channel.send({embed : mensaje});
+                    //Todo resuelto con exito
+                    console.log("Resuelto sin problemas");
+                });
+            })
+        })
+    })
+    .catch(err => console.log(err));
 }
-
 
 //Funcion principal para recorrer a mis amigos con perfil publico
 function main(channel) {
@@ -202,7 +153,7 @@ function main(channel) {
             counter ++;
         }else if(counter == 4){
             datos = await axios.get(url_mati);
-            console.log(`match:${datos.data.result.matches[1].match_id} of mati`);
+            console.log(`match:${datos.data.result.matches[0].match_id} of mati`);
             manageNewMatches(datos.data.result.matches[0], MATI, channel);
             counter = 0;
         }
