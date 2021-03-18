@@ -1,6 +1,6 @@
 module.exports = {
     //Create the embed object to send the message
-    execute(match_id, player_id,  name_jugador, win, url_jugador, stats_player, mensaje_alentador = ""){
+    execute(match_id, player_id,  name_jugador, win, url_jugador, stats_player,heroe, mensaje_alentador = ""){
         try{
             return {
                 color : 0x0099ff,
@@ -11,7 +11,7 @@ module.exports = {
                     icon_url : url_jugador, // url de icono del jugador
                     url: "https://es.dotabuff.com/players/" + player_id,
                 },
-                description : `${name_jugador}  ha ${ win ? "ganado" : "perdido"} la partida `,
+                description : `${name_jugador}  ha ${ win ? "ganado" : "perdido"} la partida con ${heroe.localized_name}`,
                 fields : [
                     {
                         name : "Kills",

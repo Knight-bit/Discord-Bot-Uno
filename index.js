@@ -20,11 +20,11 @@ const Dict = require("collections/dict");
 
 
 const sendEmbed = require('./embedMessages/lookUpdates');
-const {Chicos_Stats, Chicos_Update} = require('./mongodb/mongo_connect');
+const {Chicos_Update, Chicos_Stats} = require('./mongodb/mongo_connect');
 const axios = require("axios");
-const {Client, Message, Collection, WebhookClient, MessageEmbed, ClientUser} = require("discord.js");
+const {Client, Collection, WebhookClient} = require("discord.js");
 const client = new Client();
-const hook = new WebhookClient(WEBHOOK_ID, WEBHOOK_TOKEN);
+//const hook = new WebhookClient(WEBHOOK_ID, WEBHOOK_TOKEN);
 const fs = require('fs');
 
 
@@ -53,22 +53,13 @@ const get_victory = (player_slot, radiant_win) => {
     }
 }
 
-/*
-const chicos_id =new Dict({
-    GELA : "gela",
-    KNIGHT : "knight",
-    MIGUE : "migue",
-    MATI : "mati",
-    SPARKI : "sparki"
-});
-*/
 const chicos_id = new Dict();
 chicos_id.set(GELA, "gela");
 chicos_id.set(KNIGHT, "knight");
 chicos_id.set(MIGUE, "migue");
 chicos_id.set(MATI, "mati");
 chicos_id.set(SPARKI, "sparki");
-
+const heroes_id = new Dict(JSON.parse(fs.readFileSync('./files/heroes_id.json')));
 
 
 client.commands = new Collection();
@@ -116,7 +107,8 @@ const manageNewMatches = (match, id, channel) => {
                 Chicos_Update.findOneAndUpdate({"account_id" : id}, update, (err, data) => { 
                     if(err) throw Error(err);
                     const mensaje = sendEmbed.execute(match_id, id, data.personaname, win, 
-                                                    data.avatar , player, "Bien jugado");
+                                                    data.avatar , player, heroes_id.get(player.hero_id.toString())
+                                                    , "Bien jugado");
                     channel.send({embed : mensaje});
                     //Todo resuelto con exito
                     console.log("Resuelto sin problemas");
@@ -162,16 +154,36 @@ function main(channel) {
 
 client.once("ready", () => {
     //Canal donde se envia el mensaje
-    const messageChannel = client.channels.cache.get("820306912280051804")
-    main(messageChannel);
-    
+    //console.log(heroes_id.get("1"));
+    const messageChannel = client.channels.cache.get("820306912280051804");
+    /* Eliminar mensajes
+    messageChannel.messages.fetch({around: "50" }, limit = 100).then(messages => {
+        messageChannel.bulkDelete(messages);
+    });
+    */
+   /*
+   fs.readdirSync("./files/chicos_datas/").map(_ =>{ 
+       const file = fs.readFileSync(`./files/chicos_datas/${_}`);
+       const data = JSON.parse(file);
+       Chicos_Stats.create(data,(err) => {
+           if(err) console.log(err);
+           console.log("Created");
+       })
+   })
+   */
+   
+   Chicos_Stats.findOne({"name" : "migue"}, {name : 1, heroes: {$elemMatch : {name : "antimage"}}}, (err, data) => {
+       if(err){
+           console.log(err);
+           return
+       }
+       console.log(data);
+   })
+   
 }); 
 
 client.on("message", message => {
-    console.log(message.content);
-    if(message.content == "ohaiho"){
-        //message.channel.send(exampleEmbed);
-    }
+
     if(!message.content.startsWith(prefix) || message.author.bot) return;
     const args = message.content.slice(prefix.length).trim().split(/ +/);
     const command_name = args.shift().toLowerCase();
@@ -190,6 +202,7 @@ client.on("message", message => {
     if(!cooldowns.has(command.name)){
         cooldowns.set(command.name, new Collection());
     }
+    
     const now = Date.now();
     const timestamps = cooldowns.get(command.name);
     const cooldown_amount = (command.cooldown || 3) * 1000;
@@ -202,7 +215,6 @@ client.on("message", message => {
         }
     }
     */
-   
     timestamps.set(message.author.id, now);
     setTimeout(() => timestamps.delete(message.author.id), cooldown_amount);
     try{
@@ -211,6 +223,15 @@ client.on("message", message => {
         message.channel.send(`Hubo un error: ${err}`);
     }
 
+});
+
+client.on('guildMemberAdd', member => {
+    // Send the message to a designated channel on a server:
+    const channel = member.guild.channels.cache.find(ch => ch.name === 'member-log');
+    // Do nothing if the channel wasn't found on this server
+    if (!channel) return;
+    // Send the message, mentioning the member
+    channel.send(`Welcome to the server, ${member}`);
 });
 
 client.login(BOT_TOKEN);
