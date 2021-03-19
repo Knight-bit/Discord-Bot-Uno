@@ -30,13 +30,8 @@ const fs = require('fs');
 
 //url:https://discordjs.guide/command-handling/dynamic-commands.html#dynamically-executing-commands
 
-
-const url_gela = `http://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/v1?key=${STEAM_API}&account_id=${GELA}`;
-const url_knight = `http://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/v1?key=${STEAM_API}&account_id=${KNIGHT}`;
-const url_migue = `http://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/v1?key=${STEAM_API}&account_id=${MIGUE}`;
-const url_sparki = `http://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/v1?key=${STEAM_API}&account_id=${SPARKI}`;
-const url_mati = `http://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/v1?key=${STEAM_API}&account_id=${MATI}`;
-const get_match = (steam_api, match_id) => `http://api.steampowered.com/IDOTA2Match_570/GetMatchDetails/v1?key=${steam_api}&match_id=${match_id}`;
+const url_chicos = (steam_api, id) =>`http://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/v1?key=${steam_api}&account_id=${id}`;
+const get_match = (steam_api, match_id) => `http://api.steampowered.com/IDOTA2Match_570/GetMathDetails/v1?key=${steam_api}&match_id=${match_id}`;
 const get_person_data = (steam_api, player_id) => `https://api.opendota.com/api/players/${player_id}?key_api=${steam_api}`;
 const get_victory = (player_slot, radiant_win) => {
     if(player_slot < 100 && radiant_win == true){
@@ -59,6 +54,7 @@ chicos_id.set(KNIGHT, "knight");
 chicos_id.set(MIGUE, "migue");
 chicos_id.set(MATI, "mati");
 chicos_id.set(SPARKI, "sparki");
+chicos_id.set(WOLF, "wolf")
 const heroes_id = new Dict(JSON.parse(fs.readFileSync('./files/heroes_id.json')));
 
 
@@ -75,21 +71,29 @@ for(const file of command_files){
 //Updatea al jugador con su ultimo game, solamente ese jugador es updateado si hay mas veo que hago
 const manageNewMatches = (match, id, channel) => {
     const match_id = match.match_id;
+    let is_new = false;
     Chicos_Update.findOne({"account_id" : id}, (err, data) => {
         if(err) throw Error(err); //Si tira error natural va directo al throw
+        console.log(data)
         if(data == null){ //Si no devuelve datos, crea el objecto
         const get_specific = get_person_data(STEAM_API, id);
         axios.get(get_specific)
         .then((res) =>{
             const perfil = res.data.profile;
+            is_new = true;
             Chicos_Update.create({"account_id" : id,
                                 "match_id" : match_id, 
                                 "name" : chicos_id.get(id),
                                 "personaname" : perfil.personaname,
                                 "avatar" : perfil.avatarfull});
             })
+            .catch(err => {
+                console.log(err);
+            })
         }
-        if(match_id == data.match_id) return console.log("El match es el mismo")  //Chequea si el match ya esta archivado
+        if(data != undefined){
+            if(match_id == data.match_id) return console.log("El match es el mismo")  //Chequea si el match ya esta archivado
+        }
         axios.get(get_match(STEAM_API, match_id)) 
         .then(res => { //Pido el detalle del match para llevarme sus datos
             const player = res.data.result.players.filter(_ => _.account_id == id)[0];
@@ -124,29 +128,34 @@ function main(channel) {
     let counter = 0, datos;
     setInterval(async () => {
         if(counter == 0){
-            datos = await axios.get(url_gela);
+            datos = await axios.get(url_chicos(STEAM_API, GELA));
             console.log(`match:${datos.data.result.matches[0].match_id} of gela`);
             manageNewMatches(datos.data.result.matches[0], GELA,channel);
             counter ++;
         }else if(counter == 1){
-            datos = await axios.get(url_migue);
+            datos = await axios.get(url_chicos(STEAM_API, MIGUE));
             console.log(`match:${datos.data.result.matches[0].match_id} of migue`);
             manageNewMatches(datos.data.result.matches[0], MIGUE,  channel);
             counter ++;
         }else if(counter == 2){
-            datos = await axios.get(url_knight);
+            datos = await axios.get(url_chicos(STEAM_API, KNIGHT));
             console.log(`match:${datos.data.result.matches[0].match_id} of knight`);
             manageNewMatches(datos.data.result.matches[0], KNIGHT ,channel);
             counter ++;
         }else if(counter == 3){
-            datos = await axios.get(url_sparki);
+            datos = await axios.get(url_chicos(STEAM_API, SPARKI));
             console.log(`match:${datos.data.result.matches[0].match_id} of sparki`);
             manageNewMatches(datos.data.result.matches[0], SPARKI, channel);
             counter ++;
         }else if(counter == 4){
-            datos = await axios.get(url_mati);
+            datos = await axios.get(url_chicos(STEAM_API, MATI));
             console.log(`match:${datos.data.result.matches[0].match_id} of mati`);
             manageNewMatches(datos.data.result.matches[0], MATI, channel);
+            counter ++;
+        }else if(counter == 5){
+            datos = await axios.get(url_chicos(STEAM_API, WOLF));
+            console.log(`match:${datos.data.result.matches[0].match_id} of mati`);
+            manageNewMatches(datos.data.result.matches[0], WOLF, channel);
             counter = 0;
         }
     }, 5000)
@@ -161,7 +170,7 @@ client.once("ready", () => {
         messageChannel.bulkDelete(messages);
     });
     */
-   /*
+  /*
    fs.readdirSync("./files/chicos_datas/").map(_ =>{ 
        const file = fs.readFileSync(`./files/chicos_datas/${_}`);
        const data = JSON.parse(file);
@@ -171,19 +180,19 @@ client.once("ready", () => {
        })
    })
    */
-   
-   Chicos_Stats.findOne({"name" : "migue"}, {name : 1, heroes: {$elemMatch : {name : "antimage"}}}, (err, data) => {
+   /*
+   Chicos_Stats.findOne({"name" : "gela"}, {name : 1, heroes: {$elemMatch : {name : "antimage"}}}, (err, data) => {
        if(err){
            console.log(err);
            return
        }
        console.log(data);
    })
-   
+   */
+  main()
 }); 
 
 client.on("message", message => {
-
     if(!message.content.startsWith(prefix) || message.author.bot) return;
     const args = message.content.slice(prefix.length).trim().split(/ +/);
     const command_name = args.shift().toLowerCase();
@@ -193,34 +202,33 @@ client.on("message", message => {
         return message.reply('I can\'t execute that command inside DMs!');
     }
     if(command.args && !args.length){
-        let reply = `You didn't provide any arguments, ${message.author}!`;
+        let reply = `Faltaron argumentos viejita, ${message.author}!`;
         if(command.usage){
-            reply += `\nThe proper usage would be: \`${prefix}${command.name} ${command.usage}\``;
+            reply += `\nTendrias que usarlo de esta manera: \`${prefix}${command.name} ${command.usage}\``;
         }
         return message.channel.send(reply);
     }
     if(!cooldowns.has(command.name)){
         cooldowns.set(command.name, new Collection());
     }
-    
     const now = Date.now();
     const timestamps = cooldowns.get(command.name);
     const cooldown_amount = (command.cooldown || 3) * 1000;
-    /*
+    
     if(timestamps.has(message.author.id)){
         const expiration_time = timestamps.get(message.author.id) + cooldown_amount;
         if(now < expiration_time){
             const time_left = (expiration_time - now) / 1000;
-            return message.reply(`please wait ${time_left.toFixed(1)} more seconds(s) before reusing the\`${command.name}\` command.`);
+            return message.reply(`Espera ${time_left.toFixed(1)}s viejita`);
         }
     }
-    */
+    
     timestamps.set(message.author.id, now);
     setTimeout(() => timestamps.delete(message.author.id), cooldown_amount);
     try{
         command.execute(message, args);
     }catch(err){
-        message.channel.send(`Hubo un error: ${err}`);
+        
     }
 
 });
