@@ -1,17 +1,17 @@
 module.exports = {
     //Create the embed object to send the message
-    execute(match_id, player_id,  name_jugador, win, url_jugador, stats_player,heroe, mensaje_alentador = ""){
+    execute(match_id, chico_update, win, stats_player, heroe, mensaje_alentador = ""){
         try{
             return {
                 color : 0x0099ff,
-                title: 'Match ' + match_id + " of " + name_jugador,
+                title: `Match de ${chico_update.personaname} con ${heroe.localized_name}`,
                 url : "https://es.dotabuff.com/matches/" + match_id,
                 author : {
-                    name : name_jugador,
-                    icon_url : url_jugador, // url de icono del jugador
-                    url: "https://es.dotabuff.com/players/" + player_id,
+                    name : chico_update.personaname,
+                    icon_url : chico_update.avatar, // url de icono del jugador
+                    url: "https://es.dotabuff.com/players/" + chico_update.account_id,
                 },
-                description : `${name_jugador}  ha ${ win ? "ganado" : "perdido"} la partida con ${heroe.localized_name}`,
+                description : `${chico_update.personaname}  ha ${ win ? "ganado" : "perdido"} la partida con ${heroe.localized_name}`,
                 fields : [
                     {
                         name : "Kills",
@@ -37,12 +37,22 @@ module.exports = {
                         name : "Denies",
                         value : stats_player.denies,
                         inline: true,
+                    },
+                    {
+                        name : "Exp per min",
+                        value : stats_player.xp_per_min,
+                        inline: true,
+                    },
+                    {
+                        name : "Gold per min",
+                        value : stats_player.gold_per_min,
+                        inline: true,
                     }
                 ],
                 timestamp : new Date(),
                 footer : {
                     text : mensaje_alentador,
-                    icon_url : url_jugador,
+                    icon_url : chico_update.avatar,
                 }
 
             }

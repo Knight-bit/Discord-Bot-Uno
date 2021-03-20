@@ -12,8 +12,9 @@ const url_mongo = `mongodb+srv://${USER}:${PASSWORD}@knight-bot.gitzt.mongodb.ne
 
 const conn = mongoose.createConnection(url_mongo,{useNewUrlParser: true,useUnifiedTopology: true });
 conn.set('useFindAndModify', false);
-const Chicos_Stats = conn.model("chicos_stats", chicos_stats);
-const Chicos_Update = conn.model("chicos_update", chicos_update);
+const chicosStats = conn.model("chicos_stats", chicos_stats);
+const chicosUpdate = conn.model("chicos_update", chicos_update);
+const dummyUpdate = conn.model("dummy", dummy);
 conn.on('connected', () => {
 	console.log("DB CONNECTED");
 })
@@ -23,6 +24,7 @@ conn.on('disconnected', () => {
 
 module.exports = {
 	conn,
-	Chicos_Stats,
-	Chicos_Update,
+	chicosStats,
+	chicosUpdate,
+	dummyUpdate,
 }

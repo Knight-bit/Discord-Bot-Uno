@@ -8,7 +8,6 @@ const BOT_TOKEN = process.env.BOT_TOKEN;
 const prefix = process.env.PREFIX;
 const STEAM_API = process.env.STEAM_API;
 const GELA = process.env.GELA;
-const LUCAS = process.env.LUCAS;
 const MATI = process.env.MATI;
 const KNIGHT = process.env.KNIGHT;
 const MIGUE = process.env.MIGUE;
@@ -19,19 +18,20 @@ const WOLF = process.env.WOLF;
 const Dict = require("collections/dict");
 
 
-const sendEmbed = require('./embedMessages/lookUpdates');
-const {Chicos_Update, Chicos_Stats} = require('./mongodb/mongo_connect');
+const lookUpdates = require('./embedMessages/lookUpdates');
+const {chicosUpdate, chicosStats, dummyUpdate} = require('./mongodb/mongo_connect');
 const axios = require("axios");
 const {Client, Collection, WebhookClient} = require("discord.js");
 const client = new Client();
 //const hook = new WebhookClient(WEBHOOK_ID, WEBHOOK_TOKEN);
 const fs = require('fs');
+const { dummy } = require("./mongodb/schemas/mongo_schemas");
 
 
 //url:https://discordjs.guide/command-handling/dynamic-commands.html#dynamically-executing-commands
 
 const url_chicos = (steam_api, id) =>`http://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/v1?key=${steam_api}&account_id=${id}`;
-const get_match = (steam_api, match_id) => `http://api.steampowered.com/IDOTA2Match_570/GetMathDetails/v1?key=${steam_api}&match_id=${match_id}`;
+const get_match = (steam_api, match_id) => `http://api.steampowered.com/IDOTA2Match_570/GetMatchDetails/v1?key=${steam_api}&match_id=${match_id}`;
 const get_person_data = (steam_api, player_id) => `https://api.opendota.com/api/players/${player_id}?key_api=${steam_api}`;
 const get_victory = (player_slot, radiant_win) => {
     if(player_slot < 100 && radiant_win == true){
@@ -69,58 +69,29 @@ for(const file of command_files){
 }
 
 //Updatea al jugador con su ultimo game, solamente ese jugador es updateado si hay mas veo que hago
-const manageNewMatches = (match, id, channel) => {
-    const match_id = match.match_id;
-    let is_new = false;
-    Chicos_Update.findOne({"account_id" : id}, (err, data) => {
-        if(err) throw Error(err); //Si tira error natural va directo al throw
-        console.log(data)
-        if(data == null){ //Si no devuelve datos, crea el objecto
-        const get_specific = get_person_data(STEAM_API, id);
-        axios.get(get_specific)
-        .then((res) =>{
-            const perfil = res.data.profile;
-            is_new = true;
-            Chicos_Update.create({"account_id" : id,
-                                "match_id" : match_id, 
-                                "name" : chicos_id.get(id),
-                                "personaname" : perfil.personaname,
-                                "avatar" : perfil.avatarfull});
-            })
-            .catch(err => {
-                console.log(err);
-            })
-        }
-        if(data != undefined){
-            if(match_id == data.match_id) return console.log("El match es el mismo")  //Chequea si el match ya esta archivado
-        }
-        axios.get(get_match(STEAM_API, match_id)) 
-        .then(res => { //Pido el detalle del match para llevarme sus datos
-            const player = res.data.result.players.filter(_ => _.account_id == id)[0];
-            const win = get_victory(player.player_slot, res.data.result.radiant_win);
-            axios.get(get_person_data(STEAM_API, id))
-            .then((res_personal) => {
-                const perfil = res_personal.data.profile;
-                const update = {
-                                "account_id" : id,
-                                "match_id" : match_id,
-                                "name" : chicos_id.get(id),
-                                "personaname" : perfil.personaname,
-                                "avatar" : perfil.avatarfull, 
-                                }
-                Chicos_Update.findOneAndUpdate({"account_id" : id}, update, (err, data) => { 
-                    if(err) throw Error(err);
-                    const mensaje = sendEmbed.execute(match_id, id, data.personaname, win, 
-                                                    data.avatar , player, heroes_id.get(player.hero_id.toString())
-                                                    , "Bien jugado");
-                    channel.send({embed : mensaje});
-                    //Todo resuelto con exito
-                    console.log("Resuelto sin problemas");
-                });
-            })
-        })
-    })
-    .catch(err => console.log(err));
+const manageNewMatches = async (match, id, channel) => {
+    try{
+        //db y api pedidas
+        const chicos_update = await chicosUpdate.findOne({"account_id" : id});
+        const match_jugado = await axios.get(get_match(STEAM_API, match.match_id))
+        //Error checkers
+        if(chicos_update == undefined) throw new Error("Error en chicos_update")
+        if(match_jugado.status >= 400) throw new Error("Error +400 en el get_match() function")
+        if(match_jugado.data.result.error) throw new Error("Error consiguiendo el match");
+
+        //Set variables
+        const match_id_update = chicos_update.match_id;
+        const win = get_victory(match.player_slot, match_jugado.data.result.radiant_win);
+        const player = match_jugado.data.result.players.filter(_ => _.account_id == id)[0]; //filtra usuarios y agarra al del id
+        
+        if(match_jugado.data.result.match_id == match_id_update) console.log("Partidas son iguales")
+        const mensaje = lookUpdates.execute(match.match_id, chicos_update, win,
+                        player, heroes_id.get(player.hero_id.toString()), "Ohaiho gosaimasu")
+        channel.send({embed: mensaje});
+        
+    }catch(err){
+        console.log(err)
+    }
 }
 
 //Funcion principal para recorrer a mis amigos con perfil publico
@@ -130,7 +101,7 @@ function main(channel) {
         if(counter == 0){
             datos = await axios.get(url_chicos(STEAM_API, GELA));
             console.log(`match:${datos.data.result.matches[0].match_id} of gela`);
-            manageNewMatches(datos.data.result.matches[0], GELA,channel);
+            manageNewMatches(datos.data.result.matches[0], GELA, channel);
             counter ++;
         }else if(counter == 1){
             datos = await axios.get(url_chicos(STEAM_API, MIGUE));
@@ -154,7 +125,7 @@ function main(channel) {
             counter ++;
         }else if(counter == 5){
             datos = await axios.get(url_chicos(STEAM_API, WOLF));
-            console.log(`match:${datos.data.result.matches[0].match_id} of mati`);
+            console.log(`match:${datos.data.result.matches[0].match_id} of wolf`);
             manageNewMatches(datos.data.result.matches[0], WOLF, channel);
             counter = 0;
         }
@@ -188,8 +159,25 @@ client.once("ready", () => {
        }
        console.log(data);
    })
+   main(messageChannel)
    */
-  main()
+   
+   dummyUpdate.updateOne({id : 3, dummy_object : {$elemMatch : {name : "Denis"}}}, {
+        $push : {
+            dummy_object : [{
+                name : "Denis",
+                number : 2,
+                arreglo : [1],
+            }]
+        }
+        }, () =>{ 
+            console.log("updated")
+   })
+   
+   dummyUpdate.findOne({id : 3}, (err, res) => {
+       if(err) throw new Error(err);
+       console.log(res)
+   })
 }); 
 
 client.on("message", message => {
@@ -199,7 +187,7 @@ client.on("message", message => {
     const command = client.commands.get(command_name) || client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(command_name));
     if(!command) return ;
     if(command.guild_only && message.channel.type === 'dm'){
-        return message.reply('I can\'t execute that command inside DMs!');
+        return message.reply('I can\'t execute that command inside Ds!');
     }
     if(command.args && !args.length){
         let reply = `Faltaron argumentos viejita, ${message.author}!`;
