@@ -162,15 +162,15 @@ client.once("ready", () => {
    main(messageChannel)
    */
    
-   dummyUpdate.updateOne({id : 3, dummy_object : {$elemMatch : {name : "Denis"}}}, {
-        $push : {
-            dummy_object : [{
-                name : "Denis",
-                number : 2,
-                arreglo : [1],
-            }]
-        }
-        }, () =>{ 
+   dummyUpdate.updateOne({id : 3}, {
+        
+            $inc : {"dummy_object.$[elem].number" : 2},
+            $push : {"dummy_object.$[elem].arreglo" : [2]},
+        
+    },
+    {
+        arrayFilters : [{"elem.name" : "Denis"}],
+    }, () =>{ 
             console.log("updated")
    })
    
