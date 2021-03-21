@@ -161,26 +161,29 @@ client.once("ready", () => {
    })
    main(messageChannel)
    */
-   
+   /*
    dummyUpdate.updateOne({id : 3}, {
-        
-            $inc : {"dummy_object.$[elem].number" : 2},
-            $push : {"dummy_object.$[elem].arreglo" : [2]},
-        
+        $inc : {"dummy_object.$[elem].number" : 2},
+        $push : {"dummy_object.$[elem].arreglo" : [2]},
+        $inc : {number : 2},
     },
     {
         arrayFilters : [{"elem.name" : "Denis"}],
     }, () =>{ 
             console.log("updated")
    })
-   
-   dummyUpdate.findOne({id : 3}, (err, res) => {
+   */
+   /*
+   dummyUpdate.findOne({id : 3},{ dummy_object : {$elemMatch : {name : "Denis"}}}, (err, res) => {
        if(err) throw new Error(err);
-       console.log(res)
+       console.log(res.dummy_object[0].arreglo)
    })
+   */
+   
 }); 
 
 client.on("message", message => {
+    console.log(message.content)
     if(!message.content.startsWith(prefix) || message.author.bot) return;
     const args = message.content.slice(prefix.length).trim().split(/ +/);
     const command_name = args.shift().toLowerCase();
