@@ -1,4 +1,6 @@
 require('dotenv').config();
+
+
 module.exports = {
     name : 'help',
     description: 'Lista de commandos o info especifico de cierto comando',

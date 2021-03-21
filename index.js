@@ -152,38 +152,35 @@ client.once("ready", () => {
    })
    */
    /*
-   Chicos_Stats.findOne({"name" : "gela"}, {name : 1, heroes: {$elemMatch : {name : "antimage"}}}, (err, data) => {
+   chicosStats.findOne({"name" : "gela"},{heroes : {$elemMatch : {name : "antimage"}}},  (err, data) => {
        if(err){
            console.log(err);
            return
        }
-       console.log(data);
+       
    })
-   main(messageChannel)
-   */
+  */
    /*
+   main(messageChannel)
    dummyUpdate.updateOne({id : 3}, {
-        $inc : {"dummy_object.$[elem].number" : 2},
-        $push : {"dummy_object.$[elem].arreglo" : [2]},
-        $inc : {number : 2},
+            $inc : {"dummy_object.$[elem].number" : 2},
+            $push : {"dummy_object.$[elem].arreglo" : [2]},
+        
     },
     {
         arrayFilters : [{"elem.name" : "Denis"}],
     }, () =>{ 
             console.log("updated")
    })
-   */
-   /*
-   dummyUpdate.findOne({id : 3},{ dummy_object : {$elemMatch : {name : "Denis"}}}, (err, res) => {
+   
+   dummyUpdate.findOne({id : 3}, (err, res) => {
        if(err) throw new Error(err);
-       console.log(res.dummy_object[0].arreglo)
+       console.log(res)
    })
    */
-   
 }); 
 
 client.on("message", message => {
-    console.log(message.content)
     if(!message.content.startsWith(prefix) || message.author.bot) return;
     const args = message.content.slice(prefix.length).trim().split(/ +/);
     const command_name = args.shift().toLowerCase();
