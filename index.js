@@ -3,7 +3,6 @@ const path = require("path");
 require('dotenv').config({path: path.join(__dirname, ".env")});
 const WEBHOOK_ID = process.env.WEBHOOK_ID;
 const WEBHOOK_TOKEN = process.env.WEBHOOK_TOKEN;
-const PORT = process.env.PORT;
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const prefix = process.env.PREFIX;
 const STEAM_API = process.env.STEAM_API;
@@ -84,7 +83,7 @@ const manageNewMatches = async (match, id, channel) => {
         const win = get_victory(match.player_slot, match_jugado.data.result.radiant_win);
         const player = match_jugado.data.result.players.filter(_ => _.account_id == id)[0]; //filtra usuarios y agarra al del id
         
-        if(match_jugado.data.result.match_id == match_id_update) console.log("Partidas son iguales")
+        if(match_jugado.data.result.match_id == match_id_update){ console.log("Partidas son iguales"); return }
         const mensaje = lookUpdates.execute(match.match_id, chicos_update, win,
                         player, heroes_id.get(player.hero_id.toString()), "Ohaiho gosaimasu")
         channel.send({embed: mensaje});
@@ -160,8 +159,9 @@ client.once("ready", () => {
        
    })
   */
+   
+   //main(messageChannel)
    /*
-   main(messageChannel)
    dummyUpdate.updateOne({id : 3}, {
             $inc : {"dummy_object.$[elem].number" : 2},
             $push : {"dummy_object.$[elem].arreglo" : [2]},
@@ -178,6 +178,19 @@ client.once("ready", () => {
        console.log(res)
    })
    */
+  chicosStats.aggregate([
+    {
+        $project : {
+            
+            avgLastHits : {$avg : ["$last_hits", "$denies"]},
+            avgStats : {$avg : ["$deaths", "$kills", "$assists"]},
+        }
+    },
+    ]
+    , (err, res) => {
+      if(err) throw new Error(err);
+      console.log(res)
+  })
 }); 
 
 client.on("message", message => {

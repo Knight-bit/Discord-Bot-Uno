@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const {chicos_stats, chicos_update, dummy} = require('./schemas/mongo_schemas');
+const {chicos_stats, chicos_update, apoyo_modelo, dummy} = require('./schemas/mongo_schemas');
 const path = require('path');
 /* VARIABLES DE ENTERNO*/
 require('dotenv').config({path: path.join(__dirname, "../.env")});
@@ -14,6 +14,7 @@ const conn = mongoose.createConnection(url_mongo,{useNewUrlParser: true,useUnifi
 conn.set('useFindAndModify', false);
 const chicosStats = conn.model("chicos_stats", chicos_stats);
 const chicosUpdate = conn.model("chicos_update", chicos_update);
+const apoyodb = conn.model('apoyo', apoyo_modelo)
 const dummyUpdate = conn.model("dummy", dummy);
 conn.on('connected', () => {
 	console.log("DB CONNECTED");
@@ -27,4 +28,5 @@ module.exports = {
 	chicosStats,
 	chicosUpdate,
 	dummyUpdate,
+	apoyodb,
 }

@@ -28,7 +28,7 @@ const chicos_stats = new Schema({
     heroes : [
         {
             name : String,
-
+            name_localized : String,
             total_matches : Number,
             wins : Number,
             loses : Number,
@@ -89,11 +89,14 @@ const dummy = new Schema({
         }
     ]
 })
-
+const apoyo_modelo = new Schema({
+    message : {type : [String] }
+})
 
 module.exports = {
     chicos_stats,
     chicos_update,
+    apoyo_modelo,
     dummy,
 }
 
