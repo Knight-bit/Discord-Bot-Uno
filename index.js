@@ -178,16 +178,16 @@ client.once("ready", () => {
        console.log(res)
    })
    */
-  chicosStats.aggregate([
-    {
-        $project : {
-            
-            avgLastHits : {$avg : ["$last_hits", "$denies"]},
-            avgStats : {$avg : ["$deaths", "$kills", "$assists"]},
+  chicosStats.aggregate(
+    [
+        {
+            $project : {
+                avgLastHits : {$avg : ["$last_hits", "$denies"]},
+                avgStats : {$avg : ["$deaths", "$kills", "$assists"]},
+            }
         }
-    },
-    ]
-    , (err, res) => {
+    ],
+     (err, res) => {
       if(err) throw new Error(err);
       console.log(res)
   })
