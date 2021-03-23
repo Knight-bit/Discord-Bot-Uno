@@ -179,9 +179,9 @@ client.once("ready", () => {
    })
    */
   const match = {name : "migue"};
-  const project = {"heroes" : { $filter : {input :"$heroes", as :"hero", cond : {$eq : ["$$hero.name" , "antimage"]}}}}
-  //const group = {_id : null, heroes : "$heroes"}
-  chicosStats.aggregate([{$match : match},{$project : project}, {$unwind : '$heroes'}], (err, res) => console.log(res));
+  const project = {"name" : 1 ,"heroes" : { $filter : {input :"$heroes", as :"hero", cond : {$eq : ["$$hero.name" , "antimage"]}}}}
+  const group = {_id : null, avgKills : {$avg : "$heroes.kills"}}
+  chicosStats.aggregate([{$match : match},{$project : project}, {$unwind : '$heroes'}, {$project: group}], (err, res) => console.log(res));
 }); 
 
 client.on("message", message => {
