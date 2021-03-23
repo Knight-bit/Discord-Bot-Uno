@@ -178,19 +178,10 @@ client.once("ready", () => {
        console.log(res)
    })
    */
-  chicosStats.aggregate(
-    [
-        {
-            $project : {
-                avgLastHits : {$avg : ["$last_hits", "$denies"]},
-                avgStats : {$avg : ["$deaths", "$kills", "$assists"]},
-            }
-        }
-    ],
-     (err, res) => {
-      if(err) throw new Error(err);
-      console.log(res)
-  })
+  const match = {name : "migue"};
+  const project = {"heroes" : { $filter : {input :"$heroes", as :"hero", cond : {$eq : ["$$hero.name" , "antimage"]}}}}
+  //const group = {_id : null, heroes : "$heroes"}
+  chicosStats.aggregate([{$match : match},{$project : project}, {$unwind : '$heroes'}], (err, res) => console.log(res));
 }); 
 
 client.on("message", message => {
