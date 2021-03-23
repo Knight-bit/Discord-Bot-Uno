@@ -178,19 +178,11 @@ client.once("ready", () => {
        console.log(res)
    })
    */
-  chicosStats.aggregate(
-    [
-        {
-            $project : {
-                avgLastHits : {$avg : ["$last_hits", "$denies"]},
-                avgStats : {$avg : ["$deaths", "$kills", "$assists"]},
-            }
-        }
-    ],
-     (err, res) => {
-      if(err) throw new Error(err);
-      console.log(res)
-  })
+    const query = { name  : "antimage", heroes : {$elemMatch : { name : "antimage"}}}
+
+    chicosStats(query, (err, res) => {
+        console.log(res)
+    })
 }); 
 
 client.on("message", message => {
