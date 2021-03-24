@@ -186,7 +186,7 @@ client.once("ready", () => {
                     in : {$round : [{$multiply : [{$divide : ["$$friends.wins", "$$friends.total_matches"]}, 100]}, 2]}
                 }
             },
-            else: 0
+            else: []
         }
   }
   const cond_amigo = {
@@ -199,11 +199,11 @@ client.once("ready", () => {
                     in : "$$friends.name"
                 }
             },
-            else: 0
+            else: []
         }
   }
   const match = {name : "gela"};
-  const project = {"name" : 1 , "heroes" : { $filter : {input :"$heroes", as :"hero", cond : {$eq : ["$$hero.name" , "oracle"]}}}}
+  const project = {"name" : 1 , "heroes" : { $filter : {input :"$heroes", as :"hero", cond : {$eq : ["$$hero.name" , "antimage"]}}}}
   const project2 = {_id : null, 
                 name      : 1,
                 hero_name : "$heroes.name",

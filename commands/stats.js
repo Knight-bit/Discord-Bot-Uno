@@ -3,7 +3,7 @@ const fs = require('fs');
 const {chicosStats, chicosUpdate} = require('../mongodb/mongo_connect');
 const Dict = require('collections/dict');
 const lookPerfil = require('../embedMessages/lookPerfil');
-
+const lookHeroes = require('../embedMessages/lookHeroes');
 const chicos_id = new Dict(
     {
         "gela" : process.env.GELA,
@@ -48,35 +48,50 @@ module.exports = {
 }
  
 const messageHero = async (name, hero, message) => {
-    const stats_hero = await chicosStats.findOne({"name" : name}, {heroes : {$elemMatch : {name : hero}}});
-    const stats_perfil = await chicosUpdate.findOne({"name" : name});
-    if(stats_hero == null && stats_perfil == null) throw new Error("Error en la llamada al db") //si algun call del db tirar error stop
-    const message_embed = {
-        color : 0x112212,
-        title : `${hero} stats de ${name}`,
-        author : {
-            name : hero,
-            icon_url : stats_perfil.avatar,
-        },
-        description : `El mejor champ de ${name}`,
-        fields :[
-            {
-                name : `Best kills of ${hero}`,
-                value : Math.max(...stats_hero.heroes[0].kills),
-                inline : true
+    //Estas dos variables filtran los datos que seran entregados del db
+    const match = {name : name}
+    const project1 = {"name" : 1 , "heroes" : { $filter : {input :"$heroes", as :"hero", cond : {$eq : ["$$hero.name" , hero]}}}}
+    const cond_amigo = {
+        $cond : {
+            if : {$isArray :'$heroes.friends'},
+            then: {
+                $map :{
+                    input : "$heroes.friends",
+                    as : "friends",
+                    in : "$$friends.name"
+                }
             },
-            {
-                name : `Most deaths of ${hero}`,
-                value : Math.max(...stats_hero.heroes[0].deaths),
-                inline : true
-            },
-            {
-                name : `Best assists of ${hero}`,
-                value : Math.max(...stats_hero.heroes[0].assists),
-                inline : true
-            }
-        ]
+            else: []
+        }
     }
+    const cond_winrate = {
+        $cond : {
+            if : {$isArray :'$heroes.friends'},
+            then: {
+                $map :{
+                    input : "$heroes.friends",
+                    as : "friends",
+                    in : {$round : [{$multiply : [{$divide : ["$$friends.wins", "$$friends.total_matches"]}, 100]}, 2]}
+                }
+            },
+            else: []
+        }
+    }
+    //Aca designamos las variables que se veran adentro del objecto
+    const project2 = {
+        name : 1,
+        hero_name : "$heroes.name",
+        avg_kills  : {$round : [{$avg : "$heroes.kills"},2 ]}, 
+        avg_deaths : {$round : [{$avg : "$heroes.deaths"},2]},
+        avg_assists: {$round : [{$avg : "$heroes.assists"}, 2]},
+        avgWins   : {$round : [{$multiply : [{$divide : ["$heroes.wins", "$heroes.total_matches"]}, 100]}, 2]},
+        amigo_winrate : cond_winrate,
+        amigo_name : cond_amigo
+        }
+    const stats = await chicosStats.aggregate([{$match : match}, {$project: project1}, {$unwind : "$heroes"}, {$project: project2}]);
+    const stats_perfil = await chicosUpdate.findOne({"name" : name});
+    if(stats == null && stats_perfil == null) throw new Error("Error en la llamada al db") //si algun call del db tirar error stop
+    const message_embed = lookHeroes.execute(stats[0], stats_perfil);
     message.channel.send({embed: message_embed});
 }
 
