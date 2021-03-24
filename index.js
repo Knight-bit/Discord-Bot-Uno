@@ -176,17 +176,27 @@ client.once("ready", () => {
        console.log(res)
    })
    */
-  const cond = {
+  const cond_winrate = {
         $cond : {
             if : {$isArray :'$heroes.friends'},
             then: {
                 $map :{
                     input : "$heroes.friends",
                     as : "friends",
-                    in : {
-                        name : '$$friend.name',
-                        winRate : {$round : [{$multiply : [{$divide : ["$$friends.wins", "$$friends.total_matches"]}, 100]}, 2]}
-                    }
+                    in : {$round : [{$multiply : [{$divide : ["$$friends.wins", "$$friends.total_matches"]}, 100]}, 2]}
+                }
+            },
+            else: 0
+        }
+  }
+  const cond_amigo = {
+        $cond : {
+            if : {$isArray :'$heroes.friends'},
+            then: {
+                $map :{
+                    input : "$heroes.friends",
+                    as : "friends",
+                    in : "$$friends.name"
                 }
             },
             else: 0
@@ -200,9 +210,10 @@ client.once("ready", () => {
                 avgKills  : {$avg : "$heroes.kills"}, 
                 avgDeaths : {$avg : "$heroes.deaths"},
                 avgAssists: {$avg : "$heroes.assists"},
-                amigos : {$isArray :'$heroes.friends'},
+                //amigos : {$isArray :'$heroes.friends'},
                 avgWins   : {$round : [{$multiply : [{$divide : ["$heroes.wins", "$heroes.total_matches"]}, 100]}, 2]},
-                cond
+                amigo_winrate : cond_winrate,
+                amigo_name : cond_amigo
                 }
 
 
