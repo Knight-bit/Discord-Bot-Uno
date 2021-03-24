@@ -2,6 +2,7 @@ require('dotenv').config();
 const fs = require('fs');
 const {chicosStats, chicosUpdate} = require('../mongodb/mongo_connect');
 const Dict = require('collections/dict');
+const lookPerfil = require('../embedMessages/lookPerfil');
 
 const chicos_id = new Dict(
     {
@@ -36,7 +37,7 @@ module.exports = {
                     
                 }else{ //Aca damos datos generales de la persona
                     message.channel.send("Estos son los stats de " + name);
-                    messageName(name, message);
+                    messagePerfil(name, message);
                     return //termina la funcion
                 }
             }catch(err){
@@ -79,43 +80,20 @@ const messageHero = async (name, hero, message) => {
     message.channel.send({embed: message_embed});
 }
 
-const messageName = async (name, message) => {
-    const stats = await chicosStats.findOne({"name" : name});
+const messagePerfil = async (name, message) => {
+    const match = {name : name}
+    const project = {
+        name            : 1,
+        kills           : 1,
+        deaths          : 1,
+        assits          : 1,
+        total_matches   : 1,
+        avgWins         : {$round : [{$multiply : [{$divide : ["$wins", "$total_matches"]}, 100]}, 2]},
+    }
+    const stats = await chicosStats.aggregate([{$match : match}, {$project : project}])
+    //const stats = await chicosStats.findOne({"name" : name});
     const stats_perfil = await chicosUpdate.findOne({"name" : name});
     if(stats === null && stats_perfil === null) throw new Error("Error en la llamada al db") //si algun call del db tirar error stop
-    const message_embed = {
-        color : 0x232323,
-        title : `${name} stats`,
-        author : {
-            name : name,
-            icon_url : stats_perfil.avatar,
-            url : `https://es.dotabuff.com/players/${stats_perfil.account_id}`
-        },
-        description : "El mejor carry de Chaco",
-        fields : [
-            {
-                name : `Total de kills que hizo ${name}`,
-                value : stats.kills,
-            },
-            {
-                name : `Total de muertes de ${name}`,
-                value : stats.deaths,
-            },
-            {
-                name : `Total de assistencias de ${name}`,
-                value : stats.assists,
-            },
-            {       
-                name : `Total de games`,
-                value : stats.total_matches,
-            },
-            {
-                name : "Win rate",
-                value : (100 * (stats.wins / stats.total_matches)).toFixed(2),
-            }]
-    }
+    const message_embed = lookPerfil.execute(name, stats_perfil, stats[0]);
     message.channel.send({embed: message_embed})
 };
-/*
-
-*/

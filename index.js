@@ -24,8 +24,6 @@ const {Client, Collection, WebhookClient} = require("discord.js");
 const client = new Client();
 //const hook = new WebhookClient(WEBHOOK_ID, WEBHOOK_TOKEN);
 const fs = require('fs');
-const { dummy } = require("./mongodb/schemas/mongo_schemas");
-
 
 //url:https://discordjs.guide/command-handling/dynamic-commands.html#dynamically-executing-commands
 
@@ -178,11 +176,44 @@ client.once("ready", () => {
        console.log(res)
    })
    */
-    const query = { name  : "antimage", heroes : {$elemMatch : { name : "antimage"}}}
+  const cond = {
+        $cond : {
+            if : {$isArray :'$heroes.friends'},
+            then: {
+                $map :{
+                    input : "$heroes.friends",
+                    as : "friends",
+                    in : {
+                        name : '$$friend.name',
+                        winRate : {$round : [{$multiply : [{$divide : ["$$friends.wins", "$$friends.total_matches"]}, 100]}, 2]}
+                    }
+                }
+            },
+            else: 0
+        }
+  }
+  const match = {name : "gela"};
+  const project = {"name" : 1 , "heroes" : { $filter : {input :"$heroes", as :"hero", cond : {$eq : ["$$hero.name" , "oracle"]}}}}
+  const project2 = {_id : null, 
+                name      : 1,
+                hero_name : "$heroes.name",
+                avgKills  : {$avg : "$heroes.kills"}, 
+                avgDeaths : {$avg : "$heroes.deaths"},
+                avgAssists: {$avg : "$heroes.assists"},
+                amigos : {$isArray :'$heroes.friends'},
+                avgWins   : {$round : [{$multiply : [{$divide : ["$heroes.wins", "$heroes.total_matches"]}, 100]}, 2]},
+                cond
+                }
 
-    chicosStats(query, (err, res) => {
-        console.log(res)
-    })
+
+chicosStats.aggregate([{$match : match},
+                {$project : project}, 
+                {$unwind  : '$heroes'},
+                {$project : project2}
+                ], 
+                (err, res) => {
+                if(err) return undefined
+                console.log(res[0])});
 }); 
 
 client.on("message", message => {
