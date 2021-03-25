@@ -178,12 +178,12 @@ client.once("ready", () => {
    */
   const cond_winrate = {
         $cond : {
-            if : {$isArray :'$heroes.friends'},
+            if : {$isArray :'$friends'},
             then: {
                 $map :{
-                    input : "$heroes.friends",
-                    as : "friends",
-                    in : {$round : [{$multiply : [{$divide : ["$$friends.wins", "$$friends.total_matches"]}, 100]}, 2]}
+                    input : "$friends",
+                    as : "amigos",
+                    in : {$round : [{$multiply : [{$divide : ["$$amigos.wins", "$$amigos.total_matches"]}, 100]}, 2]}
                 }
             },
             else: []
@@ -191,19 +191,19 @@ client.once("ready", () => {
   }
   const cond_amigo = {
         $cond : {
-            if : {$isArray :'$heroes.friends'},
+            if : {$isArray :'$friends'},
             then: {
                 $map :{
-                    input : "$heroes.friends",
-                    as : "friends",
-                    in : "$$friends.name"
+                    input : "$friends",
+                    as : "amigos",
+                    in : "$$amigos.name"
                 }
             },
             else: []
         }
   }
   const match = {name : "gela"};
-  const project = {"name" : 1 , "heroes" : { $filter : {input :"$heroes", as :"hero", cond : {$eq : ["$$hero.name" , "antimage"]}}}}
+  const project = {"name" : 1 , "heroes" : { $filter : {input :"$heroes", as :"hero", cond : {$eq : ["$$hero.name" , "oracle"]}}}}
   const project2 = {_id : null, 
                 name      : 1,
                 hero_name : "$heroes.name",
@@ -215,12 +215,19 @@ client.once("ready", () => {
                 amigo_winrate : cond_winrate,
                 amigo_name : cond_amigo
                 }
-
+const project3 = {
+        amigo_name      : cond_amigo,
+        amigo_winrate   : cond_winrate,
+        name            : 1,
+        kills           : 1,
+        deaths          : 1,
+        assits          : 1,
+        total_matches   : 1,
+        avgWins         : {$round : [{$multiply : [{$divide : ["$wins", "$total_matches"]}, 100]}, 2]},
+    }
 
 chicosStats.aggregate([{$match : match},
-                {$project : project}, 
-                {$unwind  : '$heroes'},
-                {$project : project2}
+                {$project : project3}
                 ], 
                 (err, res) => {
                 if(err) return undefined

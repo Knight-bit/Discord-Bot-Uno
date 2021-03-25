@@ -96,8 +96,36 @@ const messageHero = async (name, hero, message) => {
 }
 
 const messagePerfil = async (name, message) => {
+    const cond_amigo = {
+        $cond : {
+            if : {$isArray :'$friends'},
+            then: {
+                $map :{
+                    input : "$friends",
+                    as : "amigos",
+                    in : "$$amigos.name"
+                }
+            },
+            else: []
+        }
+    }
+    const cond_winrate = {
+        $cond : {
+            if : {$isArray :'$friends'},
+            then: {
+                $map :{
+                    input : "$friends",
+                    as : "amigos",
+                    in : {$round : [{$multiply : [{$divide : ["$$amigos.wins", "$$amigos.total_matches"]}, 100]}, 2]}
+                }
+            },
+            else: []
+        }
+    }
     const match = {name : name}
     const project = {
+        amigo_name      : cond_amigo,
+        amigo_winrate   : cond_winrate,
         name            : 1,
         kills           : 1,
         deaths          : 1,

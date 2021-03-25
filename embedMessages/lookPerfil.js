@@ -30,8 +30,31 @@ module.exports = {
                     name : "Win rate",
                     value : stats.avgWins,
                 },
-                
+                stats.amigo_name.length > 0 ? getFriends(stats.amigo_name, stats.amigo_winrate) : getRejected(stats),
             ]
         }
+    }
+}
+const getFriends = (name, winrate) =>{ 
+    const length = name.length;
+    let chico_array = [];
+    for(let x = 0; x < length ; x ++){
+        chico_array.push([name[x], winrate[x]])
+    }
+    if(length == 0) return {}
+    else return (
+        chico_array.map(_ => (
+            {
+                name  : `Winrate con ${_[0]}`,
+                value : _[1],
+            }
+        ))
+    )
+    
+}
+const getRejected = (stats) => {
+    return {
+        name : `Nadie del grupo jugo con ${stats.name} de ${stats.hero_name}`,
+        value : 0,
     }
 }
