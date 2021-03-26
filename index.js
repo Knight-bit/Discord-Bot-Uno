@@ -106,7 +106,7 @@ const updatearUsuario = (match, player, id, win, amigos) => {
         $inc : { deaths     : player['deaths']},
 
         //Ahora el heroe
-        $push : {"heroes.$[elem].match_id"      : player['match_id']},
+        $push : {"heroes.$[elem].match_id"      : match['match_id']},
         $push : {"heroes.$[elem].kills"         : player['kills']},
         $push : {"heroes.$[elem].deaths"        : player['deaths']},
         $push : {"heroes.$[elem].assists"       : player['assists']},
@@ -126,7 +126,7 @@ const updatearUsuario = (match, player, id, win, amigos) => {
         $push : {"heroes.$[elem].item_neutral"  : player['item_neutral']},
         $inc  : {"heroes.$[elem].total_matches" : 1},
     },
-    {arrayFilters : [{"elem.name" : heroes_id.get(String(1))['name']}]}
+    {arrayFilters : [{"elem.name" : heroes_id.get(String(player['hero_id']))['name']}]}
     )
 
 } 
