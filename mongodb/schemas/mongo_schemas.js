@@ -3,7 +3,6 @@ const {Schema} = require("mongoose");
 
 const chicos_stats = new Schema({
     name : String,
-
     total_matches : Number,
     wins : Number,
     loses : Number,
@@ -19,7 +18,6 @@ const chicos_stats = new Schema({
         {
             name : String,
             account_id: Number, 
-
             total_matches : Number,
             wins : Number,
             loses : Number,
@@ -61,7 +59,6 @@ const chicos_stats = new Schema({
                 {
                     name : String,
                     account_id: Number, 
-
                     total_matches : Number,
                     wins : Number,
                     loses : Number,

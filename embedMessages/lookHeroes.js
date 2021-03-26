@@ -3,12 +3,12 @@ module.exports = {
     execute(stats, perfil){
         return {
             color : 0x112212,
-            title : `${stats.hero_name} stats de ${stats.name}`,
+            title : `${stats.hero_name} stats de ${perfil.personaname}`,
             author : {
                 name : stats.hero_name,
                 icon_url : perfil.avatar,
             },
-            description : `El mejor champ de ${stats.name}`,
+            description : `El mejor champ de ${perfil.personaname}`,
             fields :[
                 {
                     name : `Average kills`,
@@ -33,7 +33,7 @@ module.exports = {
 
 const getRejected = (stats) => {
     return {
-        name : `Nadie del grupo jugo con ${stats.name} de ${stats.hero_name}`,
+        name : `Nadie del grupo jugo con ${perfil.personaname} de ${stats.hero_name}`,
         value : 0,
     }
 }

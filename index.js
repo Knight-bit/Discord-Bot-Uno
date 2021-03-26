@@ -80,16 +80,30 @@ const manageNewMatches = async (match, id, channel) => {
         const match_id_update = chicos_update.match_id;
         const win = get_victory(match.player_slot, match_jugado.data.result.radiant_win);
         const player = match_jugado.data.result.players.filter(_ => _.account_id == id)[0]; //filtra usuarios y agarra al del id
-        
+
+        if(player === undefined) throw new Error(`El usuario ${chicos_id.get(id)} tiene perfil privado`);
         if(match_jugado.data.result.match_id == match_id_update){ console.log("Partidas son iguales"); return }
+
+        //updatearUsuario.execute(match_jugado.data.result, player, id, win);
         const mensaje = lookUpdates.execute(match.match_id, chicos_update, win,
                         player, heroes_id.get(player.hero_id.toString()), "Ohaiho gosaimasu")
+
         channel.send({embed: mensaje});
         
     }catch(err){
         console.log(err)
     }
 }
+
+const updatearUsuario = (match, player, id, win) => {
+    
+    chicosStats.updateOne({"name" : chicos_id.get(id)},
+    {},
+    {arrayFilters : [{"elem.name" : "Denis"}]}
+    )
+
+} 
+
 
 //Funcion principal para recorrer a mis amigos con perfil publico
 function main(channel) {
@@ -142,7 +156,7 @@ client.once("ready", () => {
    fs.readdirSync("./files/chicos_datas/").map(_ =>{ 
        const file = fs.readFileSync(`./files/chicos_datas/${_}`);
        const data = JSON.parse(file);
-       Chicos_Stats.create(data,(err) => {
+       chicosStats.create(data,(err) => {
            if(err) console.log(err);
            console.log("Created");
        })
@@ -159,7 +173,7 @@ client.once("ready", () => {
   */
    
    //main(messageChannel)
-   /*
+   
    dummyUpdate.updateOne({id : 3}, {
             $inc : {"dummy_object.$[elem].number" : 2},
             $push : {"dummy_object.$[elem].arreglo" : [2]},
@@ -170,68 +184,17 @@ client.once("ready", () => {
     }, () =>{ 
             console.log("updated")
    })
-   
+   /*
    dummyUpdate.findOne({id : 3}, (err, res) => {
        if(err) throw new Error(err);
        console.log(res)
    })
    */
-  const cond_winrate = {
-        $cond : {
-            if : {$isArray :'$friends'},
-            then: {
-                $map :{
-                    input : "$friends",
-                    as : "amigos",
-                    in : {$round : [{$multiply : [{$divide : ["$$amigos.wins", "$$amigos.total_matches"]}, 100]}, 2]}
-                }
-            },
-            else: []
-        }
-  }
-  const cond_amigo = {
-        $cond : {
-            if : {$isArray :'$friends'},
-            then: {
-                $map :{
-                    input : "$friends",
-                    as : "amigos",
-                    in : "$$amigos.name"
-                }
-            },
-            else: []
-        }
-  }
-  const match = {name : "gela"};
-  const project = {"name" : 1 , "heroes" : { $filter : {input :"$heroes", as :"hero", cond : {$eq : ["$$hero.name" , "oracle"]}}}}
-  const project2 = {_id : null, 
-                name      : 1,
-                hero_name : "$heroes.name",
-                avgKills  : {$avg : "$heroes.kills"}, 
-                avgDeaths : {$avg : "$heroes.deaths"},
-                avgAssists: {$avg : "$heroes.assists"},
-                //amigos : {$isArray :'$heroes.friends'},
-                avgWins   : {$round : [{$multiply : [{$divide : ["$heroes.wins", "$heroes.total_matches"]}, 100]}, 2]},
-                amigo_winrate : cond_winrate,
-                amigo_name : cond_amigo
-                }
-const project3 = {
-        amigo_name      : cond_amigo,
-        amigo_winrate   : cond_winrate,
-        name            : 1,
-        kills           : 1,
-        deaths          : 1,
-        assits          : 1,
-        total_matches   : 1,
-        avgWins         : {$round : [{$multiply : [{$divide : ["$wins", "$total_matches"]}, 100]}, 2]},
-    }
 
-chicosStats.aggregate([{$match : match},
-                {$project : project3}
-                ], 
-                (err, res) => {
-                if(err) return undefined
-                console.log(res[0])});
+
+
+//dummyUpdate.updateOne({id : 2}, {dummy_number : 1}, (err, res) => console.log("Updated"))
+//main(messageChannel)
 }); 
 
 client.on("message", message => {
@@ -286,3 +249,63 @@ client.on('guildMemberAdd', member => {
 
 client.login(BOT_TOKEN);
 
+
+/*
+  const cond_winrate = {
+        $cond : {
+            if : {$isArray :'$friends'},
+            then: {
+                $map :{
+                    input : "$friends",
+                    as : "amigos",
+                    in : {$round : [{$multiply : [{$divide : ["$$amigos.wins", "$$amigos.total_matches"]}, 100]}, 2]}
+                }
+            },
+            else: []
+        }
+  }
+  const cond_amigo = {
+        $cond : {
+            if : {$isArray :'$friends'},
+            then: {
+                $map :{
+                    input : "$friends",
+                    as : "amigos",
+                    in : "$$amigos.name"
+                }
+            },
+            else: []
+        }
+  }
+  const match = {name : "gela"};
+  const project = {"name" : 1 , "heroes" : { $filter : {input :"$heroes", as :"hero", cond : {$eq : ["$$hero.name" , "oracle"]}}}}
+  const project2 = {_id : null, 
+                name      : 1,
+                hero_name : "$heroes.name",
+                avgKills  : {$avg : "$heroes.kills"}, 
+                avgDeaths : {$avg : "$heroes.deaths"},
+                avgAssists: {$avg : "$heroes.assists"},
+                //amigos : {$isArray :'$heroes.friends'},
+                avgWins   : {$round : [{$multiply : [{$divide : ["$heroes.wins", "$heroes.total_matches"]}, 100]}, 2]},
+                amigo_winrate : cond_winrate,
+                amigo_name : cond_amigo
+                }
+const project3 = {
+        amigo_name      : cond_amigo,
+        amigo_winrate   : cond_winrate,
+        name            : 1,
+        kills           : 1,
+        deaths          : 1,
+        assits          : 1,
+        total_matches   : 1,
+        avgWins         : {$round : [{$multiply : [{$divide : ["$wins", "$total_matches"]}, 100]}, 2]},
+    }
+    
+chicosStats.aggregate([{$match : match},
+                {$project : project3}
+                ], 
+                (err, res) => {
+                if(err) return undefined
+                console.log(res[0])});
+
+            */

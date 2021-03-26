@@ -1,25 +1,25 @@
 module.exports = {
-    execute(name, stats_perfil, stats){
+    execute(stats_perfil, stats){
         return {
             color : 0x232323,
-            title : `${name} stats`,
+            title : `${stats_perfil.personaname} stats`,
             author : {
-                name : name,
+                name : stats_perfil.personaname,
                 icon_url : stats_perfil.avatar,
                 url : `https://es.dotabuff.com/players/${stats_perfil.account_id}`
             },
             description : "El mejor carry de Chaco",
             fields : [
                 {
-                    name : `Total de kills que hizo ${name}`,
+                    name : `Total de kills que hizo ${stats_perfil.personaname}`,
                     value : stats.kills,
                 },
                 {
-                    name : `Total de muertes de ${name}`,
+                    name : `Total de muertes de ${stats_perfil.personaname}`,
                     value : stats.deaths,
                 },
                 {
-                    name : `Total de assistencias de ${name}`,
+                    name : `Total de assistencias de ${stats_perfil.personaname}`,
                     value : stats.assists,
                 },
                 {       
