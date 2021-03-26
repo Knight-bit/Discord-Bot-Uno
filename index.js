@@ -171,8 +171,6 @@ function main(channel) {
 }
 
 client.once("ready", () => {
-    //Canal donde se envia el mensaje
-    //console.log(heroes_id.get("1"));
     const messageChannel = client.channels.cache.get("820306912280051804");
     /* Eliminar mensajes
     messageChannel.messages.fetch({around: "50" }, limit = 100).then(messages => {
@@ -188,16 +186,7 @@ client.once("ready", () => {
            console.log("Created");
        })
    })
-   */
-   /*
-   chicosStats.findOne({"name" : "gela"},{heroes : {$elemMatch : {name : "antimage"}}},  (err, data) => {
-       if(err){
-           console.log(err);
-           return
-       }
-       
-   })
-  */
+
    
    //main(messageChannel)
    /*
@@ -217,10 +206,82 @@ client.once("ready", () => {
        if(err) throw new Error(err);
        console.log(res)
    })
+   $inc : {$cond :{
+                    
+                }},
    */
-   console.log()
+   const hola = ['mati'];
+   /*
+   dummyUpdate.updateOne(
+        {
+            id: 5, 
+            dummy_object: {
+                $elemMatch : {
+                    name : "denis",
+                    dummy_object : {
+                        $all : [
+                           {$elemMatch : {name : "mati"}}
+                        ]
+                    }   
+                }
+            },
 
-//dummyUpdate.updateOne({id : 2}, {dummy_number : 1}, (err, res) => console.log("Updated"))
+        }, 
+        {
+        $inc : {"number" : 1},
+        $inc : {"dummy_object.0.dummy_object.$[].number" : 1} 
+        //Quiero recorrer el arreglo y updatear a x amigos
+        },
+        {arrayFilters : [{"elem.name" : 'mati'}], multi: true},
+        (err, res) => {
+            console.log("updated")
+        }
+    )
+    */
+    /*
+    dummyUpdate.updateOne({id : 5}, )
+    dummyUpdate.findOne({id : 5} , (err, res) => {
+        console.log("Primer objecto", res.dummy_object[0])
+        console.log("Segundo objecto", res.dummy_object[0].dummy_object[0])
+    })
+    */
+ 
+    dummyUpdate.findOne(
+        {
+            id: 5, 
+            dummy_object: {
+                $elemMatch : {
+                    name : "denis",
+                    dummy_object : {
+                        $all : [
+                            {$elemMatch : {name : "mati"}}
+                        ]
+                    }
+                }
+            },
+            
+        }, (err, res) => console.log("Dummy object ", res.dummy_object[0])); 
+    
+/*
+const dummy = new Schema({
+    id : Number,
+    dummy_number : Number,
+    dummy_array : [Number],
+    dummy_object : [
+        {
+            name : String,
+            number : Number,
+            arreglo : [Number],
+            dummy_object : [ 
+                {
+                    number : Number,
+                    name : String,
+                }
+            ]
+        }
+    ]
+})*/
+
 //main(messageChannel)
 }); 
 

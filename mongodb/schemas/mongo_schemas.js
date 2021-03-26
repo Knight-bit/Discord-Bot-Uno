@@ -83,6 +83,12 @@ const dummy = new Schema({
             name : String,
             number : Number,
             arreglo : [Number],
+            dummy_object : [ 
+                {
+                    number : Number,
+                    name : String,
+                }
+            ]
         }
     ]
 })

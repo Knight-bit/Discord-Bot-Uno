@@ -128,7 +128,7 @@ const messagePerfil = async (name, message) => {
         name            : 1,
         kills           : 1,
         deaths          : 1,
-        assists          : 1,
+        assists         : 1,
         total_matches   : 1,
         avgWins         : {$round : [{$multiply : [{$divide : ["$wins", "$total_matches"]}, 100]}, 2]},
     }
