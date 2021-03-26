@@ -95,11 +95,38 @@ const manageNewMatches = async (match, id, channel) => {
     }
 }
 
-const updatearUsuario = (match, player, id, win) => {
+const updatearUsuario = (match, player, id, win, amigos) => {
     
-    chicosStats.updateOne({"name" : chicos_id.get(id)},
-    {},
-    {arrayFilters : [{"elem.name" : "Denis"}]}
+    chicosStats.updateOne({"name" : chicos_id.get(String(id))['name']},
+    {
+        $inc : { kills      : player['kills']},
+        $inc : { denies     : player['denies']},
+        $inc : { last_hits  : player['last_hits']},
+        $inc : { assists    : player['assists']},
+        $inc : { deaths     : player['deaths']},
+
+        //Ahora el heroe
+        $push : {"heroes.$[elem].match_id"      : player['match_id']},
+        $push : {"heroes.$[elem].kills"         : player['kills']},
+        $push : {"heroes.$[elem].deaths"        : player['deaths']},
+        $push : {"heroes.$[elem].assists"       : player['assists']},
+        $push : {"heroes.$[elem].last_hits"     : player['last_hits']},
+        $push : {"heroes.$[elem].denies"        : player['denies']},
+        $push : {"heroes.$[elem].xp_per_min"    : player['xp_per_min']},
+        $push : {"heroes.$[elem].gold_per_min"  : player['gold_per_min']},
+        $push : {"heroes.$[elem].item_0"        : player['item_0']},
+        $push : {"heroes.$[elem].item_1"        : player['item_1']},
+        $push : {"heroes.$[elem].item_2"        : player['item_2']},
+        $push : {"heroes.$[elem].item_3"        : player['item_3']},
+        $push : {"heroes.$[elem].item_4"        : player['item_4']},
+        $push : {"heroes.$[elem].item_5"        : player['item_5']},
+        $push : {"heroes.$[elem].backpack_0"    : player['backpack_0']},
+        $push : {"heroes.$[elem].backpack_1"    : player['backpack_1']},
+        $push : {"heroes.$[elem].backpack_2"    : player['backpack_2']},
+        $push : {"heroes.$[elem].item_neutral"  : player['item_neutral']},
+        $inc  : {"heroes.$[elem].total_matches" : 1},
+    },
+    {arrayFilters : [{"elem.name" : heroes_id.get(String(1))['name']}]}
     )
 
 } 
@@ -173,7 +200,7 @@ client.once("ready", () => {
   */
    
    //main(messageChannel)
-   
+   /*
    dummyUpdate.updateOne({id : 3}, {
             $inc : {"dummy_object.$[elem].number" : 2},
             $push : {"dummy_object.$[elem].arreglo" : [2]},
@@ -184,14 +211,14 @@ client.once("ready", () => {
     }, () =>{ 
             console.log("updated")
    })
+   */
    /*
    dummyUpdate.findOne({id : 3}, (err, res) => {
        if(err) throw new Error(err);
        console.log(res)
    })
    */
-
-
+   console.log()
 
 //dummyUpdate.updateOne({id : 2}, {dummy_number : 1}, (err, res) => console.log("Updated"))
 //main(messageChannel)
