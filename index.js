@@ -211,7 +211,7 @@ client.once("ready", () => {
                     
                 }},
    */
-   const hola = ['mati'];
+
    /*
    dummyUpdate.updateOne(
         {
@@ -259,23 +259,45 @@ client.once("ready", () => {
    //REGLAS
    //Solamente se puede pedir un documento, pero no modificar el documento pedido
    //Existen limitadas opciones de update que se pueden emplear y attributos que no podes usar
+   /*
+   [
+    {"mati.name" : {$eq : 'mati'}},
+
+   ]
+   */
+   const getAmigo = (amigos) => {
+        diccionario = new Dict();
+        amigos.forEach(_ => {
+            diccionario[_ + '.name'] = {"$eq" : _} 
+        })
+        diccionario['heroe.name'] = {"$eq" : 'denis'}
+        return diccionario
+   }
+   
+   hola = getAmigo(['mati', 'gela'])
+   console.log(hola)
+   hola.map( _ => {
+    console.log(_.toObject())
+   })
    dummyUpdate.updateOne(
        {
            id : 5,
+          
        },
        {
-        $inc : {
-            "dummy_object.$[heroe].number" : 1,
-        }        
-     
+         
+        $inc : {"dummy_object.$[heroe].dummy_object.$[mati].number" : 2}    
        },
        {
         multi:true,
-        arrayFilters : [{"heroe.name" : 'denis'}, {"amigo_mati.name" : 'mati'}] ,
+        arrayFilters : [] ,
        },
-       (err, res) => {if(res !== undefined) console.log("Updated")}
+       (err, res) => {
+        if(res !== undefined) console.log("Update".toUpperCase()) 
+        else console.log(err)
+    })
        //Si no pones callback no se updatea
-   )
+   
    
    dummyUpdate.findOne(
        {
