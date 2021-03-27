@@ -20,10 +20,11 @@ const Dict = require("collections/dict");
 const lookUpdates = require('./embedMessages/lookUpdates');
 const {chicosUpdate, chicosStats, dummyUpdate} = require('./mongodb/mongo_connect');
 const axios = require("axios");
-const {Client, Collection, WebhookClient} = require("discord.js");
+const {Client, Collection} = require("discord.js");
 const client = new Client();
 //const hook = new WebhookClient(WEBHOOK_ID, WEBHOOK_TOKEN);
 const fs = require('fs');
+const { dummy } = require("./mongodb/schemas/mongo_schemas");
 
 //url:https://discordjs.guide/command-handling/dynamic-commands.html#dynamically-executing-commands
 
@@ -245,23 +246,45 @@ client.once("ready", () => {
         console.log("Segundo objecto", res.dummy_object[0].dummy_object[0])
     })
     */
- 
+   /*
     dummyUpdate.findOne(
         {
-            id: 5, 
-            dummy_object: {
-                $elemMatch : {
-                    name : "denis",
-                    dummy_object : {
-                        $all : [
-                            {$elemMatch : {name : "mati"}}
-                        ]
-                    }
-                }
-            },
-            
-        }, (err, res) => console.log("Dummy object ", res.dummy_object[0])); 
-    
+            id : 5,
+            dummy_object : {$elemMatch : {name : 'denis'}}
+        },
+        (err, res) => console.log(res)
+    )
+    */
+   //const project1 = {"name" : 1 , "heroes" : { $filter : {input :"$heroes", as :"hero", cond : {$eq : ["$$hero.name" , hero]}}}}
+   //REGLAS
+   //Solamente se puede pedir un documento, pero no modificar el documento pedido
+   //Existen limitadas opciones de update que se pueden emplear y attributos que no podes usar
+   dummyUpdate.updateOne(
+       {
+           id : 5,
+       },
+       {
+        $inc : {
+            "dummy_object.$[heroe].number" : 1,
+        }        
+     
+       },
+       {
+        multi:true,
+        arrayFilters : [{"heroe.name" : 'denis'}, {"amigo_mati.name" : 'mati'}] ,
+       },
+       (err, res) => {if(res !== undefined) console.log("Updated")}
+       //Si no pones callback no se updatea
+   )
+   
+   dummyUpdate.findOne(
+       {
+           id: 5,
+       },
+       (err, res) => console.log(res.dummy_object[0])
+   )
+   
+   //chicosStats.findOne({name : 'knight'}, {heroes : {$elemMatch : {name : "antimage"}}}, (err, res) => console.log(res));
 /*
 const dummy = new Schema({
     id : Number,
