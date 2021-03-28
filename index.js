@@ -97,35 +97,12 @@ const manageNewMatches = async (match, id, channel) => {
 }
 
 const updatearUsuario = (match, player, id, win, amigos) => {
-    
+    //const createUpdateChicosStats = ()
+    const update = createUpdateChicosStats(match, player, id, win, amigos);
+
     chicosStats.updateOne({"name" : chicos_id.get(String(id))['name']},
     {
-        $inc : { kills      : player['kills']},
-        $inc : { denies     : player['denies']},
-        $inc : { last_hits  : player['last_hits']},
-        $inc : { assists    : player['assists']},
-        $inc : { deaths     : player['deaths']},
-
-        //Ahora el heroe
-        $push : {"heroes.$[elem].match_id"      : match['match_id']},
-        $push : {"heroes.$[elem].kills"         : player['kills']},
-        $push : {"heroes.$[elem].deaths"        : player['deaths']},
-        $push : {"heroes.$[elem].assists"       : player['assists']},
-        $push : {"heroes.$[elem].last_hits"     : player['last_hits']},
-        $push : {"heroes.$[elem].denies"        : player['denies']},
-        $push : {"heroes.$[elem].xp_per_min"    : player['xp_per_min']},
-        $push : {"heroes.$[elem].gold_per_min"  : player['gold_per_min']},
-        $push : {"heroes.$[elem].item_0"        : player['item_0']},
-        $push : {"heroes.$[elem].item_1"        : player['item_1']},
-        $push : {"heroes.$[elem].item_2"        : player['item_2']},
-        $push : {"heroes.$[elem].item_3"        : player['item_3']},
-        $push : {"heroes.$[elem].item_4"        : player['item_4']},
-        $push : {"heroes.$[elem].item_5"        : player['item_5']},
-        $push : {"heroes.$[elem].backpack_0"    : player['backpack_0']},
-        $push : {"heroes.$[elem].backpack_1"    : player['backpack_1']},
-        $push : {"heroes.$[elem].backpack_2"    : player['backpack_2']},
-        $push : {"heroes.$[elem].item_neutral"  : player['item_neutral']},
-        $inc  : {"heroes.$[elem].total_matches" : 1},
+        
     },
     {arrayFilters : [{"elem.name" : heroes_id.get(String(player['hero_id']))['name']}]}
     )
@@ -178,119 +155,42 @@ client.once("ready", () => {
         messageChannel.bulkDelete(messages);
     });
     */
-  /*
-   fs.readdirSync("./files/chicos_datas/").map(_ =>{ 
-       const file = fs.readFileSync(`./files/chicos_datas/${_}`);
-       const data = JSON.parse(file);
-       chicosStats.create(data,(err) => {
-           if(err) console.log(err);
-           console.log("Created");
-       })
-   })
-
-   
-   //main(messageChannel)
-   /*
-   dummyUpdate.updateOne({id : 3}, {
-            $inc : {"dummy_object.$[elem].number" : 2},
-            $push : {"dummy_object.$[elem].arreglo" : [2]},
-        
-    },
-    {
-        arrayFilters : [{"elem.name" : "Denis"}],
-    }, () =>{ 
-            console.log("updated")
-   })
-   */
-   /*
-   dummyUpdate.findOne({id : 3}, (err, res) => {
-       if(err) throw new Error(err);
-       console.log(res)
-   })
-   $inc : {$cond :{
-                    
-                }},
-   */
-
-   /*
-   dummyUpdate.updateOne(
-        {
-            id: 5, 
-            dummy_object: {
-                $elemMatch : {
-                    name : "denis",
-                    dummy_object : {
-                        $all : [
-                           {$elemMatch : {name : "mati"}}
-                        ]
-                    }   
-                }
-            },
-
-        }, 
-        {
-        $inc : {"number" : 1},
-        $inc : {"dummy_object.0.dummy_object.$[].number" : 1} 
-        //Quiero recorrer el arreglo y updatear a x amigos
-        },
-        {arrayFilters : [{"elem.name" : 'mati'}], multi: true},
-        (err, res) => {
-            console.log("updated")
-        }
-    )
-    */
-    /*
-    dummyUpdate.updateOne({id : 5}, )
-    dummyUpdate.findOne({id : 5} , (err, res) => {
-        console.log("Primer objecto", res.dummy_object[0])
-        console.log("Segundo objecto", res.dummy_object[0].dummy_object[0])
-    })
-    */
-   /*
-    dummyUpdate.findOne(
-        {
-            id : 5,
-            dummy_object : {$elemMatch : {name : 'denis'}}
-        },
-        (err, res) => console.log(res)
-    )
-    */
-   //const project1 = {"name" : 1 , "heroes" : { $filter : {input :"$heroes", as :"hero", cond : {$eq : ["$$hero.name" , hero]}}}}
+  
    //REGLAS
    //Solamente se puede pedir un documento, pero no modificar el documento pedido
    //Existen limitadas opciones de update que se pueden emplear y attributos que no podes usar
+   //const createUpdateObject = (amigos)
    /*
    [
     {"mati.name" : {$eq : 'mati'}},
 
    ]
    */
+   const friends = ['wolf', 'mati', 'gela', 'knight']
    const getAmigo = (amigos) => {
-        diccionario = new Dict();
+        array = [];
+        let x;
         amigos.forEach(_ => {
-            diccionario[_ + '.name'] = {"$eq" : _} 
+            x = _ + '.name';
+            array.push({[x]: {"$eq" : _}});
         })
-        diccionario['heroe.name'] = {"$eq" : 'denis'}
-        return diccionario
+        array.push({['heroe.name'] : {"$eq" : 'denis'}})
+        return array
    }
+   amigos =['mati', 'gela'];
+   array_filter_hola = getAmigo(amigos)
+   console.log(array_filter_hola.toObject())
    
-   hola = getAmigo(['mati', 'gela'])
-   console.log(hola)
-   hola.map( _ => {
-    console.log(_.toObject())
-   })
    dummyUpdate.updateOne(
        {
            id : 5,
           
        },
-       {
-         
-        $inc : {"dummy_object.$[heroe].dummy_object.$[mati].number" : 2}    
-       },
+        createUpdateObject(['mati'])
+        ,
        {
         multi:true,
-        arrayFilters : [] ,
+        arrayFilters : array_filter_hola ,
        },
        (err, res) => {
         if(res !== undefined) console.log("Update".toUpperCase()) 
@@ -305,27 +205,7 @@ client.once("ready", () => {
        },
        (err, res) => console.log(res.dummy_object[0])
    )
-   
-   //chicosStats.findOne({name : 'knight'}, {heroes : {$elemMatch : {name : "antimage"}}}, (err, res) => console.log(res));
-/*
-const dummy = new Schema({
-    id : Number,
-    dummy_number : Number,
-    dummy_array : [Number],
-    dummy_object : [
-        {
-            name : String,
-            number : Number,
-            arreglo : [Number],
-            dummy_object : [ 
-                {
-                    number : Number,
-                    name : String,
-                }
-            ]
-        }
-    ]
-})*/
+
 
 //main(messageChannel)
 }); 
@@ -383,62 +263,71 @@ client.on('guildMemberAdd', member => {
 client.login(BOT_TOKEN);
 
 
-/*
-  const cond_winrate = {
-        $cond : {
-            if : {$isArray :'$friends'},
-            then: {
-                $map :{
-                    input : "$friends",
-                    as : "amigos",
-                    in : {$round : [{$multiply : [{$divide : ["$$amigos.wins", "$$amigos.total_matches"]}, 100]}, 2]}
-                }
-            },
-            else: []
-        }
-  }
-  const cond_amigo = {
-        $cond : {
-            if : {$isArray :'$friends'},
-            then: {
-                $map :{
-                    input : "$friends",
-                    as : "amigos",
-                    in : "$$amigos.name"
-                }
-            },
-            else: []
-        }
-  }
-  const match = {name : "gela"};
-  const project = {"name" : 1 , "heroes" : { $filter : {input :"$heroes", as :"hero", cond : {$eq : ["$$hero.name" , "oracle"]}}}}
-  const project2 = {_id : null, 
-                name      : 1,
-                hero_name : "$heroes.name",
-                avgKills  : {$avg : "$heroes.kills"}, 
-                avgDeaths : {$avg : "$heroes.deaths"},
-                avgAssists: {$avg : "$heroes.assists"},
-                //amigos : {$isArray :'$heroes.friends'},
-                avgWins   : {$round : [{$multiply : [{$divide : ["$heroes.wins", "$heroes.total_matches"]}, 100]}, 2]},
-                amigo_winrate : cond_winrate,
-                amigo_name : cond_amigo
-                }
-const project3 = {
-        amigo_name      : cond_amigo,
-        amigo_winrate   : cond_winrate,
-        name            : 1,
-        kills           : 1,
-        deaths          : 1,
-        assits          : 1,
-        total_matches   : 1,
-        avgWins         : {$round : [{$multiply : [{$divide : ["$wins", "$total_matches"]}, 100]}, 2]},
+const createUpdateObject = (amigos) => {
+    object_to_return = {}
+    object_to_return["$inc"] = {["dummy_object.$[heroe].number"] : 2}
+    if(amigos.includes('mati')){
+        object_to_return["$inc"] = {["dummy_object.$[heroe].dummy_object.$[mati].number"] : 1}
     }
-    
-chicosStats.aggregate([{$match : match},
-                {$project : project3}
-                ], 
-                (err, res) => {
-                if(err) return undefined
-                console.log(res[0])});
+    if(amigos.includes('wolf')){
+        object_to_return["$inc"] = {["dummy_object.$[heroe].dummy_object.$[wolf].number"] : 2}
+    }
+    if(amigos.includes('gela')){
+        object_to_return["$inc"] = {["dummy_object.$[heroe].dummy_object.$[gela].number"] : 2}
+    }
+    return object_to_return
+}
 
-            */
+const createUpdateChicosStats = (match, player, id, win, amigos) =>{ 
+    const update = {};
+    update['$inc'] = {'kills'    : player['kills']}
+    update['$inc'] = {'deaths'   : player['deaths']}
+    update['$inc'] = {'assists'  : player['assists']}
+    update['$inc'] = {'denies'   : player['denies']}
+    update['$inc'] = {'last_hits': player['last_hits']}
+
+    //Ahora el heroe
+    update['$push'] = {'heroes.$[elem].match_id'     : match['match_id']}
+    update['$push'] = {'heroes.$[elem].kills'        : player['kills']}
+    update['$push'] = {'heroes.$[elem].deaths'       : player['deaths']}
+    update['$push'] = {'heroes.$[elem].assists'      : player['assists']}
+    update['$push'] = {'heroes.$[elem].xp_per_min'   : player['xp_per_min']}
+    update['$push'] = {'heroes.$[elem].gold_per_min' : player['gold_per_min']}
+    update['$push'] = {'heroes.$[elem].last_hits'    : player['last_hits']}
+    update['$push'] = {'heroes.$[elem].denies'       : player['denies']}
+    update['$push'] = {'heroes.$[elem].item_0'       : player['item_0']}
+    update['$push'] = {'heroes.$[elem].item_1'       : player['item_1']}
+    update['$push'] = {'heroes.$[elem].item_2'       : player['item_2']}
+    update['$push'] = {'heroes.$[elem].item_3'       : player['item_3']}
+    update['$push'] = {'heroes.$[elem].item_4'       : player['item_4']}
+    update['$push'] = {'heroes.$[elem].item_5'       : player['item_5']}
+    return update;
+    /*
+    $inc : { kills      : player['kills']},
+        $inc : { denies     : player['denies']},
+        $inc : { last_hits  : player['last_hits']},
+        $inc : { assists    : player['assists']},
+        $inc : { deaths     : player['deaths']},
+
+        //Ahora el heroe
+        $push : {"heroes.$[elem].match_id"      : match['match_id']},
+        $push : {"heroes.$[elem].kills"         : player['kills']},
+        $push : {"heroes.$[elem].deaths"        : player['deaths']},
+        $push : {"heroes.$[elem].assists"       : player['assists']},
+        $push : {"heroes.$[elem].last_hits"     : player['last_hits']},
+        $push : {"heroes.$[elem].denies"        : player['denies']},
+        $push : {"heroes.$[elem].xp_per_min"    : player['xp_per_min']},
+        $push : {"heroes.$[elem].gold_per_min"  : player['gold_per_min']},
+        $push : {"heroes.$[elem].item_0"        : player['item_0']},
+        $push : {"heroes.$[elem].item_1"        : player['item_1']},
+        $push : {"heroes.$[elem].item_2"        : player['item_2']},
+        $push : {"heroes.$[elem].item_3"        : player['item_3']},
+        $push : {"heroes.$[elem].item_4"        : player['item_4']},
+        $push : {"heroes.$[elem].item_5"        : player['item_5']},
+        $push : {"heroes.$[elem].backpack_0"    : player['backpack_0']},
+        $push : {"heroes.$[elem].backpack_1"    : player['backpack_1']},
+        $push : {"heroes.$[elem].backpack_2"    : player['backpack_2']},
+        $push : {"heroes.$[elem].item_neutral"  : player['item_neutral']},
+        $inc  : {"heroes.$[elem].total_matches" : 1},
+    */
+}
