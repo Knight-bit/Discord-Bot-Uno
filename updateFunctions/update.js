@@ -99,7 +99,15 @@ module.exports = {
             },
             {
                 multi:true, //elem.name == heroe.name
-                arrayFilters : [{'elem.name' : {$eq : hero}}],
+                arrayFilters : [
+                {'elem.name' : {$eq : hero}},
+                {'mati.name' : {$eq : 'mati'}},
+                {'wolf.name' : {$eq : 'wolf'}},
+                {'knight.name' : {$eq : 'knight'}},
+                {'migue.name' : {$eq : 'migue'}},
+                {'gela.name' : {$eq : 'gela'}},
+                {'lucas.name' : {$eq : 'lucas'}},
+                ],
             },
             (err, res) => {
                 if(res !== undefined) console.log("Update".toUpperCase()) 

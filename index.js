@@ -16,7 +16,7 @@ const WOLF = process.env.WOLF;
 
 const Dict = require("collections/dict");
 
-
+const updateStats = require('./updateFunctions/update');
 const lookUpdates = require('./embedMessages/lookUpdates');
 const {chicosUpdate, chicosStats, dummyUpdate} = require('./mongodb/mongo_connect');
 const axios = require("axios");
@@ -24,8 +24,6 @@ const {Client, Collection} = require("discord.js");
 const client = new Client();
 //const hook = new WebhookClient(WEBHOOK_ID, WEBHOOK_TOKEN);
 const fs = require('fs');
-const { dummy } = require("./mongodb/schemas/mongo_schemas");
-
 //url:https://discordjs.guide/command-handling/dynamic-commands.html#dynamically-executing-commands
 
 const url_chicos = (steam_api, id) =>`http://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/v1?key=${steam_api}&account_id=${id}`;
@@ -95,20 +93,6 @@ const manageNewMatches = async (match, id, channel) => {
         console.log(err)
     }
 }
-
-const updatearUsuario = (match, player, id, win, amigos) => {
-    //const createUpdateChicosStats = ()
-    const update = createUpdateChicosStats(match, player, id, win, amigos);
-
-    chicosStats.updateOne({"name" : chicos_id.get(String(id))['name']},
-    {
-        
-    },
-    {arrayFilters : [{"elem.name" : heroes_id.get(String(player['hero_id']))['name']}]}
-    )
-
-} 
-
 
 //Funcion principal para recorrer a mis amigos con perfil publico
 function main(channel) {
