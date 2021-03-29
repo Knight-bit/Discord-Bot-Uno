@@ -166,31 +166,28 @@ client.once("ready", () => {
 
    ]
    */
-   const friends = ['wolf', 'mati', 'gela', 'knight']
-   const getAmigo = (amigos) => {
-        array = [];
-        let x;
-        amigos.forEach(_ => {
-            x = _ + '.name';
-            array.push({[x]: {"$eq" : _}});
-        })
-        array.push({['heroe.name'] : {"$eq" : 'denis'}})
-        return array
-   }
-   amigos =['mati', 'gela'];
-   array_filter_hola = getAmigo(amigos)
-   console.log(array_filter_hola.toObject())
+   const friends = [MATI, GELA, KNIGHT]
    
    dummyUpdate.updateOne(
        {
-           id : 5,
+           id : 6,
           
        },
-        createUpdateObject(['mati'])
+       {
+        $inc : {number : 2}
+        //$inc : true? true? {"dummy_object.$[wolf].dummy_object.$[wolfhero].number" : 1} : {"dummy_object.$[wolf].dummy_object.$[wolfhero].number" : 2}  : {}
         ,
+       },
        {
         multi:true,
-        arrayFilters : array_filter_hola ,
+        arrayFilters : [
+            {
+                "wolf.name" : {$eq : 'wolf'}
+            },
+            {
+                "wolfhero.name" : {$eq : 'wolf'}
+            }
+        ],
        },
        (err, res) => {
         if(res !== undefined) console.log("Update".toUpperCase()) 
@@ -201,10 +198,11 @@ client.once("ready", () => {
    
    dummyUpdate.findOne(
        {
-           id: 5,
+           id: 6,
        },
        (err, res) => console.log(res.dummy_object[0])
    )
+
 
 
 //main(messageChannel)
@@ -262,72 +260,3 @@ client.on('guildMemberAdd', member => {
 
 client.login(BOT_TOKEN);
 
-
-const createUpdateObject = (amigos) => {
-    object_to_return = {}
-    object_to_return["$inc"] = {["dummy_object.$[heroe].number"] : 2}
-    if(amigos.includes('mati')){
-        object_to_return["$inc"] = {["dummy_object.$[heroe].dummy_object.$[mati].number"] : 1}
-    }
-    if(amigos.includes('wolf')){
-        object_to_return["$inc"] = {["dummy_object.$[heroe].dummy_object.$[wolf].number"] : 2}
-    }
-    if(amigos.includes('gela')){
-        object_to_return["$inc"] = {["dummy_object.$[heroe].dummy_object.$[gela].number"] : 2}
-    }
-    return object_to_return
-}
-
-const createUpdateChicosStats = (match, player, id, win, amigos) =>{ 
-    const update = {};
-    update['$inc'] = {'kills'    : player['kills']}
-    update['$inc'] = {'deaths'   : player['deaths']}
-    update['$inc'] = {'assists'  : player['assists']}
-    update['$inc'] = {'denies'   : player['denies']}
-    update['$inc'] = {'last_hits': player['last_hits']}
-
-    //Ahora el heroe
-    update['$push'] = {'heroes.$[elem].match_id'     : match['match_id']}
-    update['$push'] = {'heroes.$[elem].kills'        : player['kills']}
-    update['$push'] = {'heroes.$[elem].deaths'       : player['deaths']}
-    update['$push'] = {'heroes.$[elem].assists'      : player['assists']}
-    update['$push'] = {'heroes.$[elem].xp_per_min'   : player['xp_per_min']}
-    update['$push'] = {'heroes.$[elem].gold_per_min' : player['gold_per_min']}
-    update['$push'] = {'heroes.$[elem].last_hits'    : player['last_hits']}
-    update['$push'] = {'heroes.$[elem].denies'       : player['denies']}
-    update['$push'] = {'heroes.$[elem].item_0'       : player['item_0']}
-    update['$push'] = {'heroes.$[elem].item_1'       : player['item_1']}
-    update['$push'] = {'heroes.$[elem].item_2'       : player['item_2']}
-    update['$push'] = {'heroes.$[elem].item_3'       : player['item_3']}
-    update['$push'] = {'heroes.$[elem].item_4'       : player['item_4']}
-    update['$push'] = {'heroes.$[elem].item_5'       : player['item_5']}
-    return update;
-    /*
-    $inc : { kills      : player['kills']},
-        $inc : { denies     : player['denies']},
-        $inc : { last_hits  : player['last_hits']},
-        $inc : { assists    : player['assists']},
-        $inc : { deaths     : player['deaths']},
-
-        //Ahora el heroe
-        $push : {"heroes.$[elem].match_id"      : match['match_id']},
-        $push : {"heroes.$[elem].kills"         : player['kills']},
-        $push : {"heroes.$[elem].deaths"        : player['deaths']},
-        $push : {"heroes.$[elem].assists"       : player['assists']},
-        $push : {"heroes.$[elem].last_hits"     : player['last_hits']},
-        $push : {"heroes.$[elem].denies"        : player['denies']},
-        $push : {"heroes.$[elem].xp_per_min"    : player['xp_per_min']},
-        $push : {"heroes.$[elem].gold_per_min"  : player['gold_per_min']},
-        $push : {"heroes.$[elem].item_0"        : player['item_0']},
-        $push : {"heroes.$[elem].item_1"        : player['item_1']},
-        $push : {"heroes.$[elem].item_2"        : player['item_2']},
-        $push : {"heroes.$[elem].item_3"        : player['item_3']},
-        $push : {"heroes.$[elem].item_4"        : player['item_4']},
-        $push : {"heroes.$[elem].item_5"        : player['item_5']},
-        $push : {"heroes.$[elem].backpack_0"    : player['backpack_0']},
-        $push : {"heroes.$[elem].backpack_1"    : player['backpack_1']},
-        $push : {"heroes.$[elem].backpack_2"    : player['backpack_2']},
-        $push : {"heroes.$[elem].item_neutral"  : player['item_neutral']},
-        $inc  : {"heroes.$[elem].total_matches" : 1},
-    */
-}
