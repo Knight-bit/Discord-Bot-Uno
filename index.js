@@ -1,8 +1,6 @@
 /* VARIABLES DE ENTERNO*/
 const path = require("path");
 require('dotenv').config({path: path.join(__dirname, ".env")});
-const WEBHOOK_ID = process.env.WEBHOOK_ID;
-const WEBHOOK_TOKEN = process.env.WEBHOOK_TOKEN;
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const prefix = process.env.PREFIX;
 const STEAM_API = process.env.STEAM_API;
@@ -18,7 +16,7 @@ const Dict = require("collections/dict");
 
 const updateStats = require('./updateFunctions/update');
 const lookUpdates = require('./embedMessages/lookUpdates');
-const {chicosUpdate, chicosStats, dummyUpdate} = require('./mongodb/mongo_connect');
+const {chicosUpdate, apoyodb} = require('./mongodb/mongo_connect');
 const axios = require("axios");
 const {Client, Collection} = require("discord.js");
 const client = new Client();
@@ -79,16 +77,39 @@ const manageNewMatches = async (match, id, channel) => {
         const match_id_update = chicos_update.match_id;
         const win = get_victory(match.player_slot, match_jugado.data.result.radiant_win);
         const player = match_jugado.data.result.players.filter(_ => _.account_id == id)[0]; //filtra usuarios y agarra al del id
-
         if(player === undefined) throw new Error(`El usuario ${chicos_id.get(id)} tiene perfil privado`);
         if(match_jugado.data.result.match_id == match_id_update){ console.log("Partidas son iguales"); return }
 
-        //updatearUsuario.execute(match_jugado.data.result, player, id, win);
-        const mensaje = lookUpdates.execute(match.match_id, chicos_update, win,
-                        player, heroes_id.get(player.hero_id.toString()), "Ohaiho gosaimasu")
-
-        channel.send({embed: mensaje});
+        //Consiguiendo lista de amigos y no al jugador que jugo el game
+        //Y seteando el heroe y la persona que jugo el heroe
+        //Updateamos al usuario perfil y agregamos a los amigos que jugaron con el
+        const hero = heroes_id.get(player.hero_id.toString());
+        const name = chicos_id.get(id);
+        const amigos_lista = []
+        match_jugado.data.result.players.forEach(_ => {
+            if(chicos_id.has(String(_.account_id)) && _.account_id !== id) amigos_lista.push(_.account_id)
+        })
+        const chicos_perfil_update = await axios.get(get_person_data(STEAM_API, id));
+        const chicos_apoyo = await apoyodb.findOne({});
+        const apoyo_moral = chicos_apoyo.message[Math.floor(Math.random() * chicos_apoyo.message.length)] ||"Ohaiho gosaimasu"
+        const chicos_update_reloaded = await chicosUpdate.findOneAndUpdate({"account_id" : id},
+        {
+            $set : {personaname : chicos_perfil_update.data.profile.personaname},
+            $set : {avatar : chicos_perfil_update.data.profile.avatarfull},
+            $set : {match_id : match.match_id}
+        })
         
+        if(chicos_update_reloaded == undefined) throw new Error("Error updateando la db")
+        //Conseguimos el meensaje que enviara discord y lo envia
+        const mensaje = lookUpdates.execute(match.match_id, chicos_perfil_update.data.profile, win,
+                        player, hero, apoyo_moral)
+        channel.send({embed: mensaje});
+           
+        //Update Stats de la persona al db
+        updateStats.execute(name, hero['name'], match_jugado.data.result, player, win,
+            amigos_lista.includes(MATI),amigos_lista.includes(GELA),amigos_lista.includes(MIGUE),
+            amigos_lista.includes(WOLF),amigos_lista.includes(KNIGHT),amigos_lista.includes(SPARKI))
+        console.log('Data sended to db and updated the stats of ' + name + ' with ' + hero['localized_name'])
     }catch(err){
         console.log(err)
     }
@@ -132,64 +153,9 @@ function main(channel) {
     }, 5000)
 }
 
-client.once("ready", () => {
+client.once("ready", async () => {
     const messageChannel = client.channels.cache.get("820306912280051804");
-    /* Eliminar mensajes
-    messageChannel.messages.fetch({around: "50" }, limit = 100).then(messages => {
-        messageChannel.bulkDelete(messages);
-    });
-    */
-  
-   //REGLAS
-   //Solamente se puede pedir un documento, pero no modificar el documento pedido
-   //Existen limitadas opciones de update que se pueden emplear y attributos que no podes usar
-   //const createUpdateObject = (amigos)
-   /*
-   [
-    {"mati.name" : {$eq : 'mati'}},
-
-   ]
-   */
-   const friends = [MATI, GELA, KNIGHT]
-   
-   dummyUpdate.updateOne(
-       {
-           id : 6,
-          
-       },
-       {
-        $inc : {number : 2}
-        //$inc : true? true? {"dummy_object.$[wolf].dummy_object.$[wolfhero].number" : 1} : {"dummy_object.$[wolf].dummy_object.$[wolfhero].number" : 2}  : {}
-        ,
-       },
-       {
-        multi:true,
-        arrayFilters : [
-            {
-                "wolf.name" : {$eq : 'wolf'}
-            },
-            {
-                "wolfhero.name" : {$eq : 'wolf'}
-            }
-        ],
-       },
-       (err, res) => {
-        if(res !== undefined) console.log("Update".toUpperCase()) 
-        else console.log(err)
-    })
-       //Si no pones callback no se updatea
-   
-   
-   dummyUpdate.findOne(
-       {
-           id: 6,
-       },
-       (err, res) => console.log(res.dummy_object[0])
-   )
-
-
-
-//main(messageChannel)
+    main(messageChannel)
 }); 
 
 client.on("message", message => {

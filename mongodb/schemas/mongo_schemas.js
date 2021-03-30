@@ -1,9 +1,8 @@
 const {Schema} = require("mongoose");
-
-
 const chicos_stats = new Schema({
     name : String,
     total_matches : Number,
+    match_id : [Number],
     wins : Number,
     loses : Number,
     leaves : Number,
@@ -74,24 +73,6 @@ const chicos_update = new Schema({
     avatar: String,
     personaname : String,
 })
-const dummy = new Schema({
-    id : Number,
-    dummy_number : Number,
-    dummy_array : [Number],
-    dummy_object : [
-        {
-            name : String,
-            number : Number,
-            arreglo : [Number],
-            dummy_object : [ 
-                {
-                    number : Number,
-                    name : String,
-                }
-            ]
-        }
-    ]
-})
 const apoyo_modelo = new Schema({
     message : {type : [String] }
 })
@@ -100,6 +81,5 @@ module.exports = {
     chicos_stats,
     chicos_update,
     apoyo_modelo,
-    dummy,
 }
 

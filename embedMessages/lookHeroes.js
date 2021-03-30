@@ -25,13 +25,13 @@ module.exports = {
                     value : stats.avg_assists,
                     
                 },
-                stats.amigo_name.length > 0 ? getFriends(stats.amigo_name, stats.amigo_winrate) : getRejected(stats),
+                stats.amigo_name.length > 0 ? getFriends(stats.amigo_name, stats.amigo_winrate) : getRejected(stats, perfil),
             ],
         }
     }
 }
 
-const getRejected = (stats) => {
+const getRejected = (stats, perfil) => {
     return {
         name : `Nadie del grupo jugo con ${perfil.personaname} de ${stats.hero_name}`,
         value : 0,

@@ -88,8 +88,8 @@ const messageHero = async (name, hero, message) => {
         amigo_name : cond_amigo
         }
     const stats = await chicosStats.aggregate([{$match : match}, {$project: project1}, {$unwind : "$heroes"}, {$project: project2}]);
-    const stats_perfil = await chicosUpdate.findOne({"name" : name});
-    if(stats == null && stats_perfil == null) throw new Error("Error en la llamada al db") //si algun call del db tirar error stop
+    const stats_perfil = await chicosUpdate.findOne({account_id : chicos_id.get(name)});
+    if(stats == undefined || stats_perfil == undefined) throw new Error("Error en la llamada al db") //si algun call del db tirar error stop
     const message_embed = lookHeroes.execute(stats[0], stats_perfil);
     message.channel.send({embed: message_embed});
 }

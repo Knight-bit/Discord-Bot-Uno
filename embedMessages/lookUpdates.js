@@ -8,7 +8,7 @@ module.exports = {
                 url : "https://es.dotabuff.com/matches/" + match_id,
                 author : {
                     name : chico_update.personaname,
-                    icon_url : chico_update.avatar, // url de icono del jugador
+                    icon_url : chico_update.avatarfull, // url de icono del jugador
                     url: "https://es.dotabuff.com/players/" + chico_update.account_id,
                 },
                 description : `${chico_update.personaname}  ha ${ win ? "ganado" : "perdido"} la partida con ${heroe.localized_name}`,
@@ -52,7 +52,7 @@ module.exports = {
                 timestamp : new Date(),
                 footer : {
                     text : mensaje_alentador,
-                    icon_url : chico_update.avatar,
+                    icon_url : chico_update.avatarfull,
                 }
 
             }
