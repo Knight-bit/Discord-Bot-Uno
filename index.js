@@ -10,6 +10,7 @@ const KNIGHT = process.env.KNIGHT;
 const MIGUE = process.env.MIGUE;
 const SPARKI = process.env.SPARKI;
 const WOLF = process.env.WOLF;
+const app = require('express')()
 /*fin de VARIABLES DE ENTERNO*/
 
 const Dict = require("collections/dict");
@@ -210,3 +211,9 @@ client.on('guildMemberAdd', member => {
 
 client.login(BOT_TOKEN);
 
+app.get('/', (req, res) =>{ 
+    res.send("Ohaiho gosaimasu")
+})
+app.listen(port || 5000, () => {
+    console.log(`Example app listening at http://localhost:${port || 5000}`)
+})
