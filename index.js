@@ -214,6 +214,6 @@ client.login(BOT_TOKEN);
 app.get('/', (req, res) =>{ 
     res.send("Ohaiho gosaimasu")
 })
-app.listen(port || 5000, () => {
-    console.log(`Example app listening at http://localhost:${port || 5000}`)
+app.listen(5000, () => {
+    console.log(`Example app listening at http://localhost:${5000}`)
 })
