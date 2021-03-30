@@ -1,6 +1,7 @@
 /* VARIABLES DE ENTERNO*/
 const path = require("path");
 require('dotenv').config({path: path.join(__dirname, ".env")});
+const PORT = process.env.PORT;
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const prefix = process.env.PREFIX;
 const STEAM_API = process.env.STEAM_API;
@@ -214,6 +215,6 @@ client.login(BOT_TOKEN);
 app.get('/', (req, res) =>{ 
     res.send("Ohaiho gosaimasu")
 })
-app.listen(5000, () => {
-    console.log(`Example app listening at http://localhost:${5000}`)
+app.listen(PORT, () => {
+    console.log(`Example app listening at http://localhost:${PORT}`)
 })
